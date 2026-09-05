@@ -12,4 +12,6 @@ build/
 /captures
 .cxx
 local.properties
-.superpowers**/build/
+.superpowers
+**/build/
+.idea/
