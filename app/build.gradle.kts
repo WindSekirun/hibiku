@@ -58,6 +58,7 @@ dependencies {
 
     // Media
     implementation(libs.androidx.media)
+    implementation(libs.androidx.palette)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
