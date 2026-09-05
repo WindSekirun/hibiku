@@ -254,9 +254,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
         val rawPosition = playbackState?.position ?: 0L
         val positionMs = if (rawPosition >= 0L) rawPosition else 0L
 
-        val isShuffleEnabled = playbackState?.extras?.getBoolean("SHUFFLE_ENABLED") ?: false
-        val repeatMode = playbackState?.extras?.getInt("REPEAT_MODE") ?: 0
-
         val queue = runCatching { controller.queue }.getOrNull()
         val activeQueueId = playbackState?.activeQueueItemId
         val trackNumber = metadata?.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER)?.toInt() ?: 0
@@ -301,8 +298,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
             durationMs = durationMs,
             packageName = controller.packageName,
             sessionActivity = controller.sessionActivity,
-            isShuffleEnabled = isShuffleEnabled,
-            repeatMode = repeatMode,
             queueIndex = queueIndex,
             queueSize = queueSize,
             queueItems = queueItemsList
@@ -359,18 +354,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
             override fun onSeekTo(positionMs: Long) {
                 controller.transportControls.seekTo(positionMs)
-            }
-
-            override fun onToggleShuffle() {
-                try {
-                    controller.transportControls.sendCustomAction("ACTION_TOGGLE_SHUFFLE", null)
-                } catch (_: Exception) {}
-            }
-
-            override fun onToggleRepeat() {
-                try {
-                    controller.transportControls.sendCustomAction("ACTION_TOGGLE_REPEAT", null)
-                } catch (_: Exception) {}
             }
         })
     }
