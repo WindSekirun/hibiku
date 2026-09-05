@@ -218,7 +218,13 @@ class MediaNotificationListenerService : NotificationListenerService() {
         val playbackState = controller.playbackState
         val metadata = controller.metadata
 
-        val isPlaying = playbackState?.state == PlaybackState.STATE_PLAYING
+        val current = MediaPlaybackRepository.playbackState.value
+        val isPlaying = when (playbackState?.state) {
+            PlaybackState.STATE_PLAYING -> true
+            PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR -> false
+            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING, PlaybackState.STATE_FAST_FORWARDING, PlaybackState.STATE_REWINDING -> current.isPlaying
+            else -> playbackState?.state == PlaybackState.STATE_PLAYING
+        }
         val positionMs = playbackState?.position ?: 0L
 
         val title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
@@ -276,9 +282,14 @@ class MediaNotificationListenerService : NotificationListenerService() {
     }
 
     private fun handlePlaybackStateChanged(state: PlaybackState?) {
-        val isPlaying = state?.state == PlaybackState.STATE_PLAYING
-        val rawPosition = state?.position ?: -1L
         val current = MediaPlaybackRepository.playbackState.value
+        val isPlaying = when (state?.state) {
+            PlaybackState.STATE_PLAYING -> true
+            PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR -> false
+            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING, PlaybackState.STATE_FAST_FORWARDING, PlaybackState.STATE_REWINDING -> current.isPlaying
+            else -> state?.state == PlaybackState.STATE_PLAYING
+        }
+        val rawPosition = state?.position ?: -1L
 
         // Preserve current valid positionMs if rawPosition temporarily drops to <= 0 during custom action/state transitions
         val positionMs = when {
@@ -334,8 +345,14 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
         MediaPlaybackRepository.setActionHandler(object : MediaPlaybackRepository.ActionHandler {
             override fun onPlayPause() {
-                val isPlaying = controller.playbackState?.state == PlaybackState.STATE_PLAYING
-                if (isPlaying) {
+                val repositoryState = MediaPlaybackRepository.playbackState.value.isPlaying
+                val sessionState = controller.playbackState?.state
+                val isCurrentlyPlaying = repositoryState ||
+                        sessionState == PlaybackState.STATE_PLAYING ||
+                        sessionState == PlaybackState.STATE_BUFFERING ||
+                        sessionState == PlaybackState.STATE_CONNECTING
+
+                if (isCurrentlyPlaying) {
                     controller.transportControls.pause()
                 } else {
                     controller.transportControls.play()
