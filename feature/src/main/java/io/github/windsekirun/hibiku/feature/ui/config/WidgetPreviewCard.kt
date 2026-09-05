@@ -106,16 +106,16 @@ fun WidgetPreviewCard(
         )
     }
 
-    // Render blurred background bitmap if artwork present
-    val bgBitmap = remember(effectiveArtwork, accentColorInt, density) {
-        if (effectiveArtwork != null && !effectiveArtwork.isRecycled) {
+    // Render blurred background bitmap if artwork present and blur option is enabled
+    val bgBitmap = remember(effectiveArtwork, accentColorInt, density, widgetConfig.useBlurBackground) {
+        if (widgetConfig.useBlurBackground && effectiveArtwork != null && !effectiveArtwork.isRecycled) {
             WidgetBitmapRenderer.renderBlurredBackground(
                 artwork = effectiveArtwork,
                 widthPx = (320 * density).toInt().coerceAtLeast(100),
                 heightPx = (150 * density).toInt().coerceAtLeast(60),
                 dimAlpha = 0.55f,
                 cornerRadiusPx = 24f * density,
-                strokeColor = (accentColorInt and 0x00FFFFFF) or 0x33000000
+                strokeColor = 0
             )
         } else {
             null

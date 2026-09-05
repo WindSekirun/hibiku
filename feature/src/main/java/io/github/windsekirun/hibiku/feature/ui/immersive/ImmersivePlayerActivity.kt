@@ -956,8 +956,6 @@ fun QueueBottomSheet(
     onDismiss: () -> Unit
 ) {
     val items = playbackState.queueItems
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val sheetMaxHeight = (screenHeight - 60.dp).coerceAtLeast(300.dp)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
@@ -969,7 +967,6 @@ fun QueueBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = sheetMaxHeight)
                 .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -995,7 +992,9 @@ fun QueueBottomSheet(
 
             if (items.isNotEmpty()) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(items) { index, queueItem ->
