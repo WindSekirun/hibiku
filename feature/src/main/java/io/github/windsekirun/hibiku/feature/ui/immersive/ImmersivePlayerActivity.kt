@@ -16,6 +16,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -58,11 +59,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -75,9 +73,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -126,7 +128,6 @@ class ImmersivePlayerActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SinglePassMarqueeText(
     text: String,
@@ -204,7 +205,8 @@ fun ImmersivePlayerScreen(
 
     val backgroundColor = if (isDarkMode) Color(0xFF0B0C0E) else Color(0xFFF5F6F8)
     val primaryTextColor = if (isDarkMode) Color.White else Color(0xFF111111)
-    val topBarIconBg = if (isDarkMode) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.08f)
+    val topBarIconBg =
+        if (isDarkMode) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.08f)
 
     var isShapeBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
     var isQueueBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -345,8 +347,19 @@ fun ImmersivePlayerScreen(
                         ) {
                             SeekBarStyle.entries.forEach { style ->
                                 val isSelected = style == currentSeekBarStyle
-                                val cardBg = if (isSelected) accentColor.copy(alpha = 0.25f) else (if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
-                                val border = if (isSelected) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f))
+                                val cardBg =
+                                    if (isSelected) accentColor.copy(alpha = 0.25f) else (if (isDarkMode) Color.White.copy(
+                                        alpha = 0.08f
+                                    ) else Color.Black.copy(alpha = 0.05f))
+                                val border = if (isSelected) BorderStroke(
+                                    1.5.dp,
+                                    accentColor
+                                ) else BorderStroke(
+                                    1.dp,
+                                    if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(
+                                        alpha = 0.1f
+                                    )
+                                )
 
                                 Surface(
                                     shape = RoundedCornerShape(16.dp),
@@ -391,8 +404,19 @@ fun ImmersivePlayerScreen(
                         ) {
                             ImmersiveThemeMode.entries.forEach { mode ->
                                 val isSelected = mode == currentThemeMode
-                                val cardBg = if (isSelected) accentColor.copy(alpha = 0.25f) else (if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
-                                val border = if (isSelected) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f))
+                                val cardBg =
+                                    if (isSelected) accentColor.copy(alpha = 0.25f) else (if (isDarkMode) Color.White.copy(
+                                        alpha = 0.08f
+                                    ) else Color.Black.copy(alpha = 0.05f))
+                                val border = if (isSelected) BorderStroke(
+                                    1.5.dp,
+                                    accentColor
+                                ) else BorderStroke(
+                                    1.dp,
+                                    if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(
+                                        alpha = 0.1f
+                                    )
+                                )
 
                                 Surface(
                                     shape = RoundedCornerShape(14.dp),
@@ -406,7 +430,10 @@ fun ImmersivePlayerScreen(
                                         }
                                 ) {
                                     Box(
-                                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
+                                        modifier = Modifier.padding(
+                                            vertical = 12.dp,
+                                            horizontal = 8.dp
+                                        ),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -425,8 +452,15 @@ fun ImmersivePlayerScreen(
                     // 4. Auto-launch on Charging Toggle Switch
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f),
-                        border = BorderStroke(1.dp, if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f)),
+                        color = if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
+                            alpha = 0.05f
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(
+                                alpha = 0.1f
+                            )
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -441,7 +475,11 @@ fun ImmersivePlayerScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 12.dp)
+                            ) {
                                 Text(
                                     text = "충전기 연결 시 스탠바이 자동 실행",
                                     style = MaterialTheme.typography.titleMedium,
@@ -919,7 +957,7 @@ fun QueueIconButton(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun QueueBottomSheet(
     playbackState: MediaPlaybackState,
@@ -929,7 +967,7 @@ fun QueueBottomSheet(
     val items = playbackState.queueItems
     val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
     val targetSheetHeight = (screenHeightDp * 0.60f).coerceAtLeast(320.dp)
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val lazyListState = rememberLazyListState()
 
     val noOverscrollConnection = remember {
@@ -987,72 +1025,84 @@ fun QueueBottomSheet(
             }
 
             if (items.isNotEmpty()) {
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .nestedScroll(noOverscrollConnection),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                CompositionLocalProvider(
+                    LocalOverscrollFactory provides null
                 ) {
-                    itemsIndexed(items) { index, queueItem ->
-                        val isCurrent = (index == playbackState.queueIndex - 1) ||
-                                (queueItem.title == playbackState.title)
-                        val cardBorder = if (isCurrent) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
-                        val cardBg = if (isCurrent) accentColor.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f)
-
-                        Surface(
-                            shape = RoundedCornerShape(14.dp),
-                            color = cardBg,
-                            border = cardBorder,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    MediaPlaybackRepository.skipToQueueItem(queueItem.queueId)
-                                    onDismiss()
-                                }
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Text(
-                                    text = "${index + 1}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isCurrent) accentColor else Color.White.copy(alpha = 0.5f),
-                                    modifier = Modifier.width(28.dp),
-                                    textAlign = TextAlign.Center
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .nestedScroll(noOverscrollConnection),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(items) { index, queueItem ->
+                            val isCurrent = (index == playbackState.queueIndex - 1) ||
+                                    (queueItem.title == playbackState.title)
+                            val cardBorder = if (isCurrent) BorderStroke(
+                                1.5.dp,
+                                accentColor
+                            ) else BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                            val cardBg =
+                                if (isCurrent) accentColor.copy(alpha = 0.15f) else Color.White.copy(
+                                    alpha = 0.05f
                                 )
 
-                                Column(modifier = Modifier.weight(1f)) {
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = cardBg,
+                                border = cardBorder,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        MediaPlaybackRepository.skipToQueueItem(queueItem.queueId)
+                                        onDismiss()
+                                    }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
                                     Text(
-                                        text = queueItem.title,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                                        color = Color.White,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
+                                        text = "${index + 1}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isCurrent) accentColor else Color.White.copy(
+                                            alpha = 0.5f
+                                        ),
+                                        modifier = Modifier.width(28.dp),
+                                        textAlign = TextAlign.Center
                                     )
-                                    if (queueItem.artist.isNotBlank()) {
+
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = queueItem.artist,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White.copy(alpha = 0.65f),
+                                            text = queueItem.title,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                            color = Color.White,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
+                                        if (queueItem.artist.isNotBlank()) {
+                                            Text(
+                                                text = queueItem.artist,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.White.copy(alpha = 0.65f),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
                                     }
-                                }
 
-                                if (isCurrent) {
-                                    Text(
-                                        text = "NOW PLAYING",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = accentColor
-                                    )
+                                    if (isCurrent) {
+                                        Text(
+                                            text = "NOW PLAYING",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = accentColor
+                                        )
+                                    }
                                 }
                             }
                         }
