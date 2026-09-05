@@ -13,4 +13,31 @@
     <string name="cd_next">Next track</string>
     <string name="cd_previous">Previous track</string>
     <string name="cd_album_art">Album artwork</string>
+
+    <!-- Widget Configuration -->
+    <string name="config_activity_title">위젯 커스텀 설정</string>
+    <string name="config_save_and_apply">저장 및 위젯에 적용</string>
+    <string name="config_preview_section">실시간 미리보기</string>
+    <string name="config_ring_style_section">진행 링 스타일</string>
+    <string name="config_color_section">색상 설정</string>
+    <string name="config_dynamic_color_title">앨범아트 색상 자동 추출 (Material You)</string>
+    <string name="config_dynamic_color_desc">재생 중인 곡의 앨범아트에서 강조 색상을 자동으로 추출합니다.</string>
+    <string name="config_preset_colors">프리셋 색상</string>
+    <string name="config_custom_hex">커스텀 HEX 색상</string>
+    <string name="config_custom_hex_hint">#FFFFFF</string>
+    <string name="config_custom_hex_helper">6자리 또는 8자리 16진수 코드 (예: #5CB3FF)</string>
+    <string name="config_custom_hex_error">올바른 HEX 색상 코드가 아닙니다.</string>
+    <string name="config_options_section">표시 옵션</string>
+    <string name="config_text_visible">곡 정보 텍스트 표시</string>
+    <string name="config_text_visible_desc">위젯에 곡 제목과 아티스트 이름을 표시합니다.</string>
+    <string name="config_permission_banner_title">알림 접근 권한 필요</string>
+    <string name="config_permission_banner_desc">재생 중인 미디어 정보를 위젯에 표시하려면 알림 접근 권한이 필요합니다.</string>
+    <string name="config_permission_button">권한 설정하기</string>
+    <string name="ring_style_squiggly_wave">스퀴글리 웨이브</string>
+    <string name="ring_style_floating_clean">플로팅 클린</string>
+    <string name="ring_style_segmented_minimal">세그먼트 미니멀</string>
+    <string name="ring_style_glow_thumb">글로우 썸</string>
+    <string name="ring_style_solid_classic">솔리드 클래식</string>
+    <string name="sample_track_title">Say! Fanfare!</string>
+    <string name="sample_track_artist">Shirakami Fubuki</string>
 </resources>

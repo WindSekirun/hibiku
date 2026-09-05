@@ -42,5 +42,13 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/music_widget_2x2_minimal_info" />
         </receiver>
+
+        <activity
+            android:name=".ui.config.WidgetConfigurationActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
