@@ -616,21 +616,12 @@ fun LandscapeImmersiveLayout(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat (centered)
+            // Controls Row: Prev - Play/Pause - Next (centered)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Shuffle toggle button
-                PlaybackModeToggleButton(
-                    isActive = playbackState.isShuffleEnabled,
-                    iconRes = R.drawable.ic_shuffle,
-                    contentDescription = "Shuffle",
-                    accentColor = accentColor,
-                    onClick = onToggleShuffle
-                )
-
                 ScallopButton(
                     onClick = onSkipPrevious,
                     size = 54.dp,
@@ -664,16 +655,6 @@ fun LandscapeImmersiveLayout(
                         modifier = Modifier.size(26.dp)
                     )
                 }
-
-                // Repeat toggle button (off / all / one)
-                val repeatIconRes = if (playbackState.repeatMode == 2) R.drawable.ic_repeat_one else R.drawable.ic_repeat
-                PlaybackModeToggleButton(
-                    isActive = playbackState.isRepeatEnabled,
-                    iconRes = repeatIconRes,
-                    contentDescription = "Repeat",
-                    accentColor = accentColor,
-                    onClick = onToggleRepeat
-                )
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -807,20 +788,12 @@ fun PortraitImmersiveLayout(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat
+            // Controls Row: Prev - Play/Pause - Next (centered)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PlaybackModeToggleButton(
-                    isActive = playbackState.isShuffleEnabled,
-                    iconRes = R.drawable.ic_shuffle,
-                    contentDescription = "Shuffle",
-                    accentColor = accentColor,
-                    onClick = onToggleShuffle
-                )
-
                 ScallopButton(
                     onClick = onSkipPrevious,
                     size = 54.dp,
@@ -854,15 +827,6 @@ fun PortraitImmersiveLayout(
                         modifier = Modifier.size(26.dp)
                     )
                 }
-
-                val repeatIconRes = if (playbackState.repeatMode == 2) R.drawable.ic_repeat_one else R.drawable.ic_repeat
-                PlaybackModeToggleButton(
-                    isActive = playbackState.isRepeatEnabled,
-                    iconRes = repeatIconRes,
-                    contentDescription = "Repeat",
-                    accentColor = accentColor,
-                    onClick = onToggleRepeat
-                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
