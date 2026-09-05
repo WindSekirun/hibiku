@@ -537,3 +537,52 @@ fun RingStylePickerRow(
         }
     }
 }
+
+// -------------------------------------------------------------------------
+// Compose UI Previews
+// -------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Configuration Screen Preview", showBackground = true)
+@Composable
+fun WidgetConfigurationScreenPreview() {
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            background = Color(0xFF121212),
+            surface = Color(0xFF1E1E1E),
+            surfaceVariant = Color(0xFF2D2D2D),
+            primary = Color(0xFF5CB3FF),
+            onPrimary = Color.Black
+        )
+    ) {
+        WidgetConfigurationScreen(
+            initialConfig = WidgetConfig(
+                ringStyle = RingStyle.SQUIGGLY_WAVE,
+                borderColorHex = "#5CB3FF",
+                useDynamicColor = true,
+                textVisible = true
+            ),
+            onSave = {},
+            onCancel = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Permission Notice Banner Preview")
+@Composable
+fun PermissionNoticeBannerPreview() {
+    MaterialTheme {
+        PermissionNoticeBanner(onOpenSettings = {})
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Ring Style Picker Row Preview", backgroundColor = 0xFF1E1E1E, showBackground = true)
+@Composable
+fun RingStylePickerRowPreview() {
+    MaterialTheme {
+        RingStylePickerRow(
+            selectedStyle = RingStyle.SQUIGGLY_WAVE,
+            onStyleSelected = {}
+        )
+    }
+}
+

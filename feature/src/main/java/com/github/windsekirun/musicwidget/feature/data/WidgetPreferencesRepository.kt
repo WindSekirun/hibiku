@@ -104,5 +104,23 @@ class WidgetPreferencesRepository(
         fun keyDynamicColor(appWidgetId: Int): String = "widget_${appWidgetId}_dynamic_color"
         fun keyTextVisible(appWidgetId: Int): String = "widget_${appWidgetId}_text_visible"
         fun keyShapeStyle(appWidgetId: Int): String = "widget_${appWidgetId}_shape_style"
+        fun keyMinimalOverlay(appWidgetId: Int): String = "widget_${appWidgetId}_minimal_overlay"
+    }
+
+    /**
+     * Toggles or gets the dimmed overlay visibility state for 2x2 Minimal widget.
+     */
+    fun isMinimalOverlayVisible(appWidgetId: Int): Boolean {
+        return preferences.getBoolean(keyMinimalOverlay(appWidgetId), false)
+    }
+
+    fun setMinimalOverlayVisible(appWidgetId: Int, visible: Boolean) {
+        preferences.edit().putBoolean(keyMinimalOverlay(appWidgetId), visible).apply()
+    }
+
+    fun toggleMinimalOverlay(appWidgetId: Int): Boolean {
+        val next = !isMinimalOverlayVisible(appWidgetId)
+        setMinimalOverlayVisible(appWidgetId, next)
+        return next
     }
 }

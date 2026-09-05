@@ -270,3 +270,38 @@ fun SquigglySeekBar(
         }
     }
 }
+
+// -------------------------------------------------------------------------
+// Compose UI Previews
+// -------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Squiggly SeekBar Playing Preview", showBackground = true, backgroundColor = 0xFF0B0C0E)
+@Composable
+fun SquigglySeekBarPlayingPreview() {
+    MaterialTheme {
+        SquigglySeekBar(
+            positionMs = 75_000L,
+            durationMs = 210_000L,
+            isPlaying = true,
+            accentColor = Color(0xFF5CB3FF),
+            onSeek = {},
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Squiggly SeekBar Paused Preview", showBackground = true, backgroundColor = 0xFF0B0C0E)
+@Composable
+fun SquigglySeekBarPausedPreview() {
+    MaterialTheme {
+        SquigglySeekBar(
+            positionMs = 30_000L,
+            durationMs = 180_000L,
+            isPlaying = false,
+            accentColor = Color(0xFF5CB3FF),
+            onSeek = {},
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+

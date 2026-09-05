@@ -37,6 +37,12 @@ object WidgetUpdateHelper {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update MusicWidget2x2Minimal", e)
         }
+
+        try {
+            MusicWidget2x2Pure().updateAll(context)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update MusicWidget2x2Pure", e)
+        }
     }
 }
 

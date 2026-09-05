@@ -16,6 +16,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
@@ -63,72 +64,67 @@ fun MusicWidget2x2StandardContent(
         accentColor = accentColor,
         density = density
     ) {
-        Column(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = GlanceModifier.fillMaxSize()
         ) {
-            // Top: Circular Album Art + Ring
-            WidgetArtworkRing(
-                artwork = playbackState.albumArt,
-                progress = playbackState.progress,
-                isPlaying = playbackState.isPlaying,
-                ringStyle = config.ringStyle,
-                ringColor = accentColor,
-                sizeDp = 80.dp,
-                density = density
+            // Immersive transition button in top-right corner
+            WidgetImmersiveButton(
+                modifier = GlanceModifier
+                    .padding(top = 6.dp, end = 6.dp)
             )
 
-            // Middle: Title & Artist
-            if (config.textVisible) {
-                Spacer(modifier = GlanceModifier.height(4.dp))
-
-                val titleText = playbackState.title.ifBlank {
-                    context.getString(R.string.no_music_playing)
-                }
-                val artistText = playbackState.artist.ifBlank {
-                    context.getString(R.string.unknown_artist)
-                }
-
-                Text(
-                    text = titleText,
-                    maxLines = 1,
-                    style = TextStyle(
-                        color = ColorProvider(Color.White),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = GlanceModifier.clickable(actionRunCallback<LaunchPlayerActionCallback>())
+            Column(
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Top: Circular Album Art + Ring
+                WidgetArtworkRing(
+                    artwork = playbackState.albumArt,
+                    progress = playbackState.progress,
+                    isPlaying = playbackState.isPlaying,
+                    ringStyle = config.ringStyle,
+                    ringColor = accentColor,
+                    sizeDp = 82.dp,
+                    density = density
                 )
 
-                Text(
-                    text = artistText,
-                    maxLines = 1,
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xCCFFFFFF)),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = GlanceModifier.clickable(actionRunCallback<LaunchPlayerActionCallback>())
+                // Middle: Song Title only (artist omitted to prevent cramped controls)
+                if (config.textVisible) {
+                    Spacer(modifier = GlanceModifier.height(5.dp))
+
+                    val titleText = playbackState.title.ifBlank {
+                        context.getString(R.string.no_music_playing)
+                    }
+
+                    Text(
+                        text = titleText,
+                        maxLines = 1,
+                        style = TextStyle(
+                            color = ColorProvider(Color.White),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = GlanceModifier.clickable(actionRunCallback<LaunchPlayerActionCallback>())
+                    )
+                }
+
+                Spacer(modifier = GlanceModifier.height(6.dp))
+
+                // Bottom: Controls row
+                WidgetControlsRow(
+                    isPlaying = playbackState.isPlaying,
+                    accentColor = accentColor,
+                    buttonSize = 30.dp,
+                    playButtonSize = 36.dp,
+                    iconSize = 16.dp,
+                    playIconSize = 20.dp,
+                    spacing = 8.dp
                 )
             }
-
-            Spacer(modifier = GlanceModifier.height(6.dp))
-
-            // Bottom: Controls row
-            WidgetControlsRow(
-                isPlaying = playbackState.isPlaying,
-                accentColor = accentColor,
-                buttonSize = 30.dp,
-                playButtonSize = 36.dp,
-                iconSize = 16.dp,
-                playIconSize = 20.dp,
-                spacing = 8.dp
-            )
         }
     }
 }

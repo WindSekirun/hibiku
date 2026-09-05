@@ -6,6 +6,8 @@
     <string name="widget_2x2_standard_description">Square widget with circular album art, progress ring, title, and playback controls.</string>
     <string name="widget_2x2_minimal_name">Music Widget 2x2 Minimal</string>
     <string name="widget_2x2_minimal_description">Minimal square widget featuring prominent circular artwork, progress ring, and controls.</string>
+    <string name="widget_2x2_pure_name">Music Widget 2x2 Pure</string>
+    <string name="widget_2x2_pure_description">Ultra-minimal transparent widget with circular album art and progress ring only.</string>
     <string name="no_music_playing">No music playing</string>
     <string name="unknown_artist">Unknown artist</string>
     <string name="cd_play">Play</string>
@@ -13,6 +15,7 @@
     <string name="cd_next">Next track</string>
     <string name="cd_previous">Previous track</string>
     <string name="cd_album_art">Album artwork</string>
+    <string name="cd_open_immersive">Open StandBy Immersive Player</string>
 
     <!-- Widget Configuration -->
     <string name="config_activity_title">위젯 커스텀 설정</string>

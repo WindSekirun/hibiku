@@ -116,7 +116,8 @@ fun WidgetArtworkRing(
     ringColor: Int,
     sizeDp: Dp,
     density: Float,
-    modifier: GlanceModifier = GlanceModifier
+    modifier: GlanceModifier = GlanceModifier,
+    onClick: androidx.glance.action.Action = actionRunCallback<LaunchPlayerActionCallback>()
 ) {
     val sizePx = (sizeDp.value * density).toInt().coerceAtLeast(32)
     val artBitmap = remember(artwork, progress, isPlaying, ringStyle, ringColor, sizePx) {
@@ -136,7 +137,7 @@ fun WidgetArtworkRing(
         contentDescription = LocalContext.current.getString(R.string.cd_album_art),
         modifier = modifier
             .size(sizeDp)
-            .clickable(actionRunCallback<LaunchPlayerActionCallback>())
+            .clickable(onClick)
     )
 }
 
@@ -216,3 +217,27 @@ fun WidgetControlsRow(
         }
     }
 }
+
+@Composable
+fun WidgetImmersiveButton(
+    modifier: GlanceModifier = GlanceModifier,
+    sizeDp: Dp = 26.dp,
+    iconSizeDp: Dp = 16.dp
+) {
+    Box(
+        modifier = modifier
+            .size(sizeDp)
+            .cornerRadius(sizeDp / 2)
+            .background(ColorProvider(Color(0x33FFFFFF)))
+            .clickable(actionRunCallback<LaunchImmersiveActionCallback>()),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            provider = ImageProvider(R.drawable.ic_widget_immersive),
+            contentDescription = LocalContext.current.getString(R.string.cd_open_immersive),
+            modifier = GlanceModifier.size(iconSizeDp),
+            colorFilter = ColorFilter.tint(ColorProvider(Color.White))
+        )
+    }
+}
+

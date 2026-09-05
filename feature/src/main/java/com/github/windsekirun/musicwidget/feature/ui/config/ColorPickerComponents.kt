@@ -299,3 +299,36 @@ fun CustomHexInputField(
         )
     }
 }
+
+// -------------------------------------------------------------------------
+// Compose UI Previews
+// -------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Color Picker - Dynamic Color Enabled", showBackground = true, backgroundColor = 0xFF1E1E1E)
+@Composable
+fun ColorPickerComponentsDynamicPreview() {
+    MaterialTheme {
+        ColorPickerComponents(
+            useDynamicColor = true,
+            onDynamicColorChange = {},
+            selectedColorHex = "#5CB3FF",
+            onColorHexChange = {},
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Color Picker - Custom Hex / Presets", showBackground = true, backgroundColor = 0xFF1E1E1E)
+@Composable
+fun ColorPickerComponentsCustomPreview() {
+    MaterialTheme {
+        ColorPickerComponents(
+            useDynamicColor = false,
+            onDynamicColorChange = {},
+            selectedColorHex = "#5CB3FF",
+            onColorHexChange = {},
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+

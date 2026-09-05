@@ -156,6 +156,24 @@ class WidgetPreferencesRepositoryTest {
         val ids = repository.getAllConfiguredWidgetIds()
         assertEquals(setOf(12), ids)
     }
+
+    @Test
+    fun isMinimalOverlayVisible_defaultsToFalse() {
+        assertFalse(repository.isMinimalOverlayVisible(55))
+    }
+
+    @Test
+    fun toggleMinimalOverlay_togglesStateCorrectly() {
+        assertFalse(repository.isMinimalOverlayVisible(88))
+
+        val firstToggle = repository.toggleMinimalOverlay(88)
+        assertTrue(firstToggle)
+        assertTrue(repository.isMinimalOverlayVisible(88))
+
+        val secondToggle = repository.toggleMinimalOverlay(88)
+        assertFalse(secondToggle)
+        assertFalse(repository.isMinimalOverlayVisible(88))
+    }
 }
 
 /**

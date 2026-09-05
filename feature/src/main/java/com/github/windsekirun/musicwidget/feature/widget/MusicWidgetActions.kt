@@ -71,3 +71,40 @@ class LaunchPlayerActionCallback : ActionCallback {
         }
     }
 }
+
+class LaunchImmersiveActionCallback : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        try {
+            val intent = Intent().apply {
+                component = ComponentName(
+                    context.packageName,
+                    "com.github.windsekirun.musicwidget.feature.ui.immersive.ImmersivePlayerActivity"
+                )
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("WidgetActions", "Failed to launch ImmersivePlayerActivity", e)
+        }
+    }
+}
+
+class ToggleMinimalOverlayActionCallback : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        val appWidgetId = runCatching {
+            androidx.glance.appwidget.GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+        }.getOrDefault(-1)
+
+        val prefs = com.github.windsekirun.musicwidget.feature.data.WidgetPreferencesRepository(context)
+        prefs.toggleMinimalOverlay(appWidgetId)
+        WidgetUpdateHelper.updateAllWidgets(context)
+    }
+}

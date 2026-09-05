@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">MusicWidget</string>
+    <string name="main_welcome_title">Music Widget</string>
+    <string name="main_welcome_desc">세련된 원형 프로그레스 링과 M3 모핑 셰이프가 적용된 홈 위젯 &amp; 스탠바이 이머시브 플레이어입니다.</string>
+    <string name="main_permission_granted_title">알림 접근 권한 허용됨</string>
+    <string name="main_permission_granted_desc">재생 중인 미디어 정보를 감지하고 위젯 및 스탠바이 화면을 실시간 업데이트할 준비가 완료되었습니다.</string>
+    <string name="main_permission_required_title">알림 접근 권한 필요</string>
+    <string name="main_permission_required_desc">Spotify, YouTube Music 등 현재 재생 중인 곡 정보를 읽고 위젯에 표시하려면 알림 접근 권한이 필요합니다.</string>
+    <string name="main_grant_permission_button">알림 접근 권한 허용하기</string>
+    <string name="main_open_standby_button">스탠바이 이머시브 플레이어 실행</string>
+    <string name="main_widget_guide_title">홈 화면에 위젯 추가하는 방법</string>
+    <string name="main_widget_guide_desc">1. 홈 화면의 빈 곳을 길게 누릅니다.\n2. [위젯] 메뉴에서 [MusicWidget]을 선택합니다.\n3. 4x2 와이드, 2x2 스탠다드, 2x2 미니멀, 또는 2x2 퓨어(투명) 위젯을 원하는 위치에 배치하세요.</string>
 </resources>

@@ -44,6 +44,17 @@
         </receiver>
 
         <receiver
+            android:name=".widget.MusicWidget2x2PureReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/music_widget_2x2_pure_info" />
+        </receiver>
+
+        <receiver
             android:name=".receiver.PowerConnectionReceiver"
             android:exported="true">
             <intent-filter>

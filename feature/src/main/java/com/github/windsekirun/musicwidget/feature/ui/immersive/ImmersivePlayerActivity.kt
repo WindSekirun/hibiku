@@ -521,3 +521,68 @@ fun AudioOutputChip(
         )
     }
 }
+
+// -------------------------------------------------------------------------
+// Compose UI Previews (StandBy Portrait & Landscape)
+// -------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Immersive Player - Portrait",
+    widthDp = 390,
+    heightDp = 844,
+    showBackground = true
+)
+@Composable
+fun ImmersivePlayerPortraitPreview() {
+    val sampleState = MediaPlaybackState(
+        isPlaying = true,
+        title = "SUPERNOVA",
+        artist = "Shirakami Fubuki",
+        positionMs = 85_000L,
+        durationMs = 210_000L,
+        packageName = "com.spotify.music"
+    )
+
+    MaterialTheme {
+        PortraitImmersiveLayout(
+            playbackState = sampleState,
+            currentShape = ImmersiveShapeStyle.SCALLOP,
+            accentColor = Color(0xFF5CB3FF),
+            onPlayPause = {},
+            onSkipPrevious = {},
+            onSkipNext = {},
+            onSeek = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Immersive Player - Landscape StandBy",
+    widthDp = 844,
+    heightDp = 390,
+    showBackground = true
+)
+@Composable
+fun ImmersivePlayerLandscapePreview() {
+    val sampleState = MediaPlaybackState(
+        isPlaying = true,
+        title = "SUPERNOVA",
+        artist = "Shirakami Fubuki",
+        positionMs = 85_000L,
+        durationMs = 210_000L,
+        packageName = "com.spotify.music"
+    )
+
+    MaterialTheme {
+        LandscapeImmersiveLayout(
+            playbackState = sampleState,
+            currentShape = ImmersiveShapeStyle.SCALLOP,
+            accentColor = Color(0xFF5CB3FF),
+            onPlayPause = {},
+            onSkipPrevious = {},
+            onSkipNext = {},
+            onSeek = {}
+        )
+    }
+}
+

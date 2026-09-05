@@ -275,3 +275,31 @@ fun WidgetPreviewCard(
         }
     }
 }
+
+// -------------------------------------------------------------------------
+// Compose UI Previews
+// -------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Widget Preview Card - Live Preview", showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun WidgetPreviewCardPreview() {
+    MaterialTheme {
+        WidgetPreviewCard(
+            playbackState = MediaPlaybackState(
+                isPlaying = true,
+                title = "SUPERNOVA",
+                artist = "Shirakami Fubuki",
+                positionMs = 120_000L,
+                durationMs = 210_000L
+            ),
+            widgetConfig = WidgetConfig(
+                ringStyle = com.github.windsekirun.musicwidget.domain.model.RingStyle.SQUIGGLY_WAVE,
+                borderColorHex = "#5CB3FF",
+                useDynamicColor = true,
+                textVisible = true
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+

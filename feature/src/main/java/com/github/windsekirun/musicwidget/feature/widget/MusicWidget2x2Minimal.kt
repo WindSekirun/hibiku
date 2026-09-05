@@ -4,21 +4,27 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
+import androidx.glance.background
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Column
-import androidx.glance.layout.Spacer
+import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.unit.ColorProvider
 import com.github.windsekirun.musicwidget.domain.model.MediaPlaybackState
 import com.github.windsekirun.musicwidget.domain.model.WidgetConfig
 import com.github.windsekirun.musicwidget.domain.repository.MediaPlaybackRepository
+import com.github.windsekirun.musicwidget.feature.data.WidgetPreferencesRepository
 
 class MusicWidget2x2Minimal : GlanceAppWidget() {
 
@@ -28,11 +34,18 @@ class MusicWidget2x2Minimal : GlanceAppWidget() {
             val (config, accentColor) = resolveWidgetConfigAndColor(context, id, playbackState.albumArt)
             val density = context.resources.displayMetrics.density
 
+            val appWidgetId = runCatching {
+                GlanceAppWidgetManager(context).getAppWidgetId(id)
+            }.getOrDefault(-1)
+            val prefs = WidgetPreferencesRepository(context)
+            val isOverlayVisible = prefs.isMinimalOverlayVisible(appWidgetId)
+
             MusicWidget2x2MinimalContent(
                 playbackState = playbackState,
                 config = config,
                 accentColor = accentColor,
-                density = density
+                density = density,
+                isOverlayVisible = isOverlayVisible
             )
         }
     }
@@ -43,43 +56,57 @@ fun MusicWidget2x2MinimalContent(
     playbackState: MediaPlaybackState,
     config: WidgetConfig,
     accentColor: Int,
-    density: Float
+    density: Float,
+    isOverlayVisible: Boolean = false
 ) {
     WidgetBackground(
         artwork = playbackState.albumArt,
         accentColor = accentColor,
         density = density
     ) {
-        Column(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .padding(6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = GlanceModifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            // Large circular album art + ring
+            // Immersive player transition button in top-right corner
+            WidgetImmersiveButton(
+                modifier = GlanceModifier
+                    .padding(top = 6.dp, end = 6.dp)
+            )
+
+            // Artwork + Ring (taps toggle overlay controls)
             WidgetArtworkRing(
                 artwork = playbackState.albumArt,
                 progress = playbackState.progress,
                 isPlaying = playbackState.isPlaying,
                 ringStyle = config.ringStyle,
                 ringColor = accentColor,
-                sizeDp = 100.dp,
-                density = density
+                sizeDp = 120.dp,
+                density = density,
+                onClick = actionRunCallback<ToggleMinimalOverlayActionCallback>()
             )
 
-            Spacer(modifier = GlanceModifier.height(4.dp))
-
-            // Compact controls row
-            WidgetControlsRow(
-                isPlaying = playbackState.isPlaying,
-                accentColor = accentColor,
-                buttonSize = 26.dp,
-                playButtonSize = 30.dp,
-                iconSize = 14.dp,
-                playIconSize = 18.dp,
-                spacing = 8.dp
-            )
+            // Dimmed overlay with controls if toggled on
+            if (isOverlayVisible) {
+                Box(
+                    modifier = GlanceModifier
+                        .fillMaxSize()
+                        .background(ColorProvider(Color(0x99000000)))
+                        .cornerRadius(16.dp)
+                        .clickable(actionRunCallback<ToggleMinimalOverlayActionCallback>()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    WidgetControlsRow(
+                        isPlaying = playbackState.isPlaying,
+                        accentColor = accentColor,
+                        buttonSize = 34.dp,
+                        playButtonSize = 42.dp,
+                        iconSize = 18.dp,
+                        playIconSize = 22.dp,
+                        spacing = 10.dp
+                    )
+                }
+            }
         }
     }
 }
