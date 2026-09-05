@@ -430,6 +430,16 @@
     <button class="btn-toggle" id="btnMask3" onclick="setMask('mask-vinyl')">클래식 LP</button>
     <button class="btn-toggle" id="btnMask4" onclick="setMask('mask-superellipse')">스쿼클</button>
   </div>
+  
+  <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.15); align-self: center;"></div>
+  
+  <div class="mask-picker">
+    <span>🎨 앨범아트 추출 색상:</span>
+    <button class="btn-toggle active" onclick="applyExtractedColor('#645a16', '#c8b948', 'rgba(109, 97, 24, 0.35)', this)">올리브/골드 (기본 추출)</button>
+    <button class="btn-toggle" onclick="applyExtractedColor('#1e3a8a', '#38bdf8', 'rgba(30, 58, 138, 0.35)', this)">딥 블루/시안</button>
+    <button class="btn-toggle" onclick="applyExtractedColor('#831843', '#f472b6', 'rgba(131, 24, 67, 0.35)', this)">로즈/베리</button>
+    <button class="btn-toggle" onclick="applyExtractedColor('#4c1d95', '#c084fc', 'rgba(76, 29, 149, 0.35)', this)">바이올렛</button>
+  </div>
 </div>
 
 <!-- Main Device Viewport Stage -->
@@ -592,6 +602,28 @@
       btn.style.background = "#645a16";
       btn.style.color = "#ffffff";
     }
+  }
+  function applyExtractedColor(btnBg, accentColor, glowColor, btn) {
+    document.querySelectorAll('.controls-bar .btn-toggle').forEach(b => {
+      if (b.innerText.includes('추출') || b.innerText.includes('블루') || b.innerText.includes('로즈') || b.innerText.includes('바이올렛') || b.innerText.includes('골드')) {
+        b.classList.remove('active');
+      }
+    });
+    if (btn) btn.classList.add('active');
+
+    // Update play button
+    const playBtn = document.getElementById('btnPlay');
+    if (playBtn) {
+      playBtn.style.background = btnBg;
+      playBtn.style.boxShadow = '0 6px 20px ' + glowColor;
+    }
+    // Update seekbar
+    const squigglyPath = document.getElementById('squigglyPath');
+    if (squigglyPath) squigglyPath.setAttribute('stroke', accentColor);
+    
+    // Update ambient glow
+    const glow = document.querySelector('.ambient-glow');
+    if (glow) glow.style.background = 'radial-gradient(circle, ' + glowColor + ' 0%, transparent 70%)';
   }
 </script>
 
