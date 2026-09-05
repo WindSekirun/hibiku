@@ -435,17 +435,36 @@ fun GalaxyFluidWaveProgressBar(
             )
         }
 
+        // 3. Thumb 드로잉 (Glow 효과 + 메인 컬러 채우기 + 외곽 림)
         val thumbCenter = Offset(activeWidth, trackY)
+        val glowRadius = 16.dp.toPx()
+
+        // 1) 메인 컬러 기반 방사형 글로우(Glow)
+        drawCircle(
+            brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                colors = listOf(
+                    mainColor.copy(alpha = 0.65f),
+                    mainColor.copy(alpha = 0.2f),
+                    Color.Transparent
+                ),
+                center = thumbCenter,
+                radius = glowRadius
+            ),
+            radius = glowRadius,
+            center = thumbCenter
+        )
+        // 2) 원 내부를 mainColor로 채움
+        drawCircle(
+            color = mainColor,
+            radius = thumbRadius,
+            center = thumbCenter
+        )
+        // 3) 외곽 화이트 테두리
         drawCircle(
             color = thumbBorderColor,
             radius = thumbRadius,
             center = thumbCenter,
-            style = Stroke(width = 2.8.dp.toPx())
-        )
-        drawCircle(
-            color = thumbInnerColor,
-            radius = thumbRadius - 2.8.dp.toPx(),
-            center = thumbCenter
+            style = Stroke(width = 2.5.dp.toPx())
         )
     }
 }

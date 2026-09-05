@@ -19,6 +19,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -953,15 +956,20 @@ fun QueueBottomSheet(
     onDismiss: () -> Unit
 ) {
     val items = playbackState.queueItems
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val sheetMaxHeight = (screenHeight - 60.dp).coerceAtLeast(300.dp)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState = sheetState,
         containerColor = Color(0xFF16181D),
         scrimColor = Color.Black.copy(alpha = 0.6f)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = sheetMaxHeight)
                 .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -985,15 +993,12 @@ fun QueueBottomSheet(
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (items.isNotEmpty()) {
-                    items.forEachIndexed { index, queueItem ->
+            if (items.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(items) { index, queueItem ->
                         val isCurrent = (index == playbackState.queueIndex - 1) ||
                                 (queueItem.title == playbackState.title)
                         val cardBorder = if (isCurrent) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
@@ -1003,7 +1008,12 @@ fun QueueBottomSheet(
                             shape = RoundedCornerShape(14.dp),
                             color = cardBg,
                             border = cardBorder,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    MediaPlaybackRepository.skipToQueueItem(queueItem.queueId)
+                                    onDismiss()
+                                }
                         ) {
                             Row(
                                 modifier = Modifier.padding(14.dp),
@@ -1050,46 +1060,46 @@ fun QueueBottomSheet(
                             }
                         }
                     }
-                } else {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color.White.copy(alpha = 0.08f),
-                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
-                        modifier = Modifier.fillMaxWidth()
+                }
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White.copy(alpha = 0.08f),
+                    border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(accentColor)
-                            )
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(accentColor)
+                        )
 
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = playbackState.title.ifEmpty { "No Media Playing" },
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = playbackState.artist.ifEmpty { "StandBy Mode" },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.7f)
-                                )
-                            }
-
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "NOW PLAYING",
-                                style = MaterialTheme.typography.labelSmall,
+                                text = playbackState.title.ifEmpty { "No Media Playing" },
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = accentColor
+                                color = Color.White
+                            )
+                            Text(
+                                text = playbackState.artist.ifEmpty { "StandBy Mode" },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.7f)
                             )
                         }
+
+                        Text(
+                            text = "NOW PLAYING",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor
+                        )
                     }
                 }
             }

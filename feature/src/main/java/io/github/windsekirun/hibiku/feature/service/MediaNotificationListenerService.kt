@@ -349,6 +349,14 @@ class MediaNotificationListenerService : NotificationListenerService() {
                 controller.transportControls.skipToPrevious()
             }
 
+            override fun onSkipToQueueItem(queueId: Long) {
+                if (queueId >= 0) {
+                    try {
+                        controller.transportControls.skipToQueueItem(queueId)
+                    } catch (_: Exception) {}
+                }
+            }
+
             override fun onSeekTo(positionMs: Long) {
                 controller.transportControls.seekTo(positionMs)
             }

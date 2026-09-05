@@ -12,6 +12,7 @@ interface MediaPlaybackRepository {
     fun playPause()
     fun skipToNext()
     fun skipToPrevious()
+    fun skipToQueueItem(queueId: Long)
     fun seekTo(positionMs: Long)
     fun toggleShuffle()
     fun toggleRepeat()
@@ -59,6 +60,7 @@ interface MediaPlaybackRepository {
         fun onPlayPause() {}
         fun onSkipToNext() {}
         fun onSkipToPrevious() {}
+        fun onSkipToQueueItem(queueId: Long) {}
         fun onSeekTo(positionMs: Long) {}
         fun onToggleShuffle() {}
         fun onToggleRepeat() {}
@@ -88,6 +90,10 @@ open class DefaultMediaPlaybackRepository : MediaPlaybackRepository {
 
     override fun skipToPrevious() {
         actionHandler?.onSkipToPrevious()
+    }
+
+    override fun skipToQueueItem(queueId: Long) {
+        actionHandler?.onSkipToQueueItem(queueId)
     }
 
     override fun seekTo(positionMs: Long) {
