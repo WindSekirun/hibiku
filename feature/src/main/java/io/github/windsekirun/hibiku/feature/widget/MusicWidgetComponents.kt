@@ -95,8 +95,7 @@ fun WidgetBackground(
     GlanceBox(
         modifier = modifier
             .cornerRadius(cornerRadiusDp)
-            .background(ColorProvider(Color(0xE612141C)))
-            .clickable(actionRunCallback<LaunchPlayerActionCallback>()),
+            .background(ColorProvider(Color(0xE612141C))),
         contentAlignment = Alignment.Center
     ) {
         if (bgBitmap != null) {

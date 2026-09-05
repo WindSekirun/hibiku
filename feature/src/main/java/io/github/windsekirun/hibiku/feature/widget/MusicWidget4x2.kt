@@ -72,7 +72,7 @@ fun MusicWidget4x2Content(
 
     // 위젯 높이 기준으로 요소 크기 비례 계산
     val h = size.height.value  // dp 값
-    val artworkSizeDp: Dp = h.coerceIn(72f, 180f * (1f / 0.82f)).times(0.82f).dp
+    val artworkSizeDp: Dp = h.coerceIn(60f, 125f / 0.68f).times(0.68f).dp
     val artistFontSp: TextUnit = maxOf(10f, minOf(17f, h * 0.11f)).sp
     val titleFontSp: TextUnit = maxOf(13f, minOf(28f, h * 0.17f)).sp
     val spacerAfterTextDp: Dp = h.coerceIn(4f / 0.07f, 14f / 0.07f).times(0.07f).dp

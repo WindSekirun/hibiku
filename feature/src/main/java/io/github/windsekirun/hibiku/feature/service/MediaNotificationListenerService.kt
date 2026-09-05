@@ -2,6 +2,8 @@ package io.github.windsekirun.hibiku.feature.service
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
@@ -11,7 +13,9 @@ import android.service.notification.NotificationListenerService
 import android.util.Log
 import androidx.core.content.ContextCompat
 import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
+import io.github.windsekirun.hibiku.domain.model.QueueItemInfo
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
+import io.github.windsekirun.hibiku.feature.receiver.PowerConnectionReceiver
 import io.github.windsekirun.hibiku.feature.receiver.ScreenStateReceiver
 import io.github.windsekirun.hibiku.feature.widget.WidgetUpdateHelper
 import kotlinx.coroutines.CoroutineScope
@@ -77,6 +81,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
 
         registerScreenReceiver()
+        registerPowerReceiver()
 
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
         val isScreenOn = powerManager?.isInteractive ?: true
@@ -94,6 +99,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
 
         unregisterScreenReceiver()
+        unregisterPowerReceiver()
         detachActiveController()
         setupActionHandler(null)
         ticker.stop()
@@ -103,6 +109,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         unregisterScreenReceiver()
+        unregisterPowerReceiver()
         detachActiveController()
         setupActionHandler(null)
         ticker.stop()
@@ -135,6 +142,37 @@ class MediaNotificationListenerService : NotificationListenerService() {
             }
             isReceiverRegistered = false
         }
+    }
+
+    private var powerReceiver: PowerConnectionReceiver? = null
+
+    private fun registerPowerReceiver() {
+        if (powerReceiver == null) {
+            try {
+                val receiver = PowerConnectionReceiver()
+                val filter = IntentFilter(Intent.ACTION_POWER_CONNECTED)
+                ContextCompat.registerReceiver(
+                    this,
+                    receiver,
+                    filter,
+                    ContextCompat.RECEIVER_EXPORTED
+                )
+                powerReceiver = receiver
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to register power connection receiver", e)
+            }
+        }
+    }
+
+    private fun unregisterPowerReceiver() {
+        powerReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to unregister power connection receiver", e)
+            }
+        }
+        powerReceiver = null
     }
 
     private fun queryActiveSessions() {
@@ -239,8 +277,16 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     private fun handlePlaybackStateChanged(state: PlaybackState?) {
         val isPlaying = state?.state == PlaybackState.STATE_PLAYING
-        val positionMs = state?.position ?: 0L
+        val rawPosition = state?.position ?: -1L
         val current = MediaPlaybackRepository.playbackState.value
+
+        // Preserve current valid positionMs if rawPosition temporarily drops to <= 0 during custom action/state transitions
+        val positionMs = when {
+            rawPosition <= 0L && current.positionMs > 0L && (isPlaying || state?.state == PlaybackState.STATE_BUFFERING) -> current.positionMs
+            rawPosition >= 0L -> rawPosition
+            else -> current.positionMs
+        }
+
         val updated = current.copy(
             isPlaying = isPlaying,
             positionMs = positionMs

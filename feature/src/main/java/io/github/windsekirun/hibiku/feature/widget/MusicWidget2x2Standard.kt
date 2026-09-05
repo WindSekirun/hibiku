@@ -26,6 +26,7 @@ import androidx.glance.layout.Box as GlanceBox
 import androidx.glance.layout.Column as GlanceColumn
 import androidx.glance.layout.Spacer as GlanceSpacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
@@ -124,7 +125,9 @@ fun MusicWidget2x2StandardContent(
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     ),
-                    modifier = GlanceModifier.clickable(actionRunCallback<LaunchPlayerActionCallback>())
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .clickable(actionRunCallback<LaunchPlayerActionCallback>())
                 )
 
                 GlanceSpacer(modifier = GlanceModifier.height(2.dp))
@@ -138,7 +141,9 @@ fun MusicWidget2x2StandardContent(
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center
                     ),
-                    modifier = GlanceModifier.clickable(actionRunCallback<LaunchPlayerActionCallback>())
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .clickable(actionRunCallback<LaunchPlayerActionCallback>())
                 )
             }
 

@@ -3,6 +3,12 @@ package io.github.windsekirun.hibiku.domain.model
 import android.app.PendingIntent
 import android.graphics.Bitmap
 
+data class QueueItemInfo(
+    val queueId: Long = -1L,
+    val title: String = "",
+    val artist: String = ""
+)
+
 data class MediaPlaybackState(
     val isPlaying: Boolean = false,
     val title: String = "",
@@ -15,7 +21,8 @@ data class MediaPlaybackState(
     val isShuffleEnabled: Boolean = false,
     val repeatMode: Int = 0, // 0: OFF, 1: ALL, 2: ONE
     val queueIndex: Int = 1,
-    val queueSize: Int = 1
+    val queueSize: Int = 1,
+    val queueItems: List<QueueItemInfo> = emptyList()
 ) {
     val isRepeatEnabled: Boolean
         get() = repeatMode != 0

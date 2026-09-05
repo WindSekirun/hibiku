@@ -1,66 +1,37 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="1000"
+    android:viewportHeight="1000">
 
-    <!-- Outer Left Semi-Circular Ring (#404859) -->
-    <path
-        android:pathData="M 54,26 A 28,28 0 1,0 54,82"
-        android:strokeWidth="3.2"
-        android:strokeColor="#4A5268"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000" />
+    <group
+        android:pivotX="500"
+        android:pivotY="500"
+        android:scaleX="0.68"
+        android:scaleY="0.68">
 
-    <!-- Outer Right Squiggly Wave Ring (#5CB3FF / Electric Cosmic Blue) -->
-    <path
-        android:pathData="M 54,26
-            C 58,26 62,28 66,29
-            C 71,30 76,33 79,37
-            C 83,41 85,46 86,51
-            C 87,56 86,61 84,66
-            C 82,71 78,76 74,79
-            C 69,82 64,83 59,82
-            C 57,82 55.5,82 54,82"
-        android:strokeWidth="3.8"
-        android:strokeColor="#5CB3FF"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000" />
+        <!-- 1. 미재생 트랙 (매끄러운 원형 슬레이트 그레이 아크) -->
+        <path
+            android:pathData="M 710,864 A 420,420 0 1,1 463.4,81.6"
+            android:strokeColor="#444C5C"
+            android:strokeWidth="42"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000" />
 
-    <!-- Central Musical Note (#7E8A9E and bright accents) -->
-    <!-- Beam -->
-    <path
-        android:pathData="M 50,42 L 67,39 L 67,45 L 50,48 Z"
-        android:fillColor="#8C98AC" />
+        <!-- 2. 재생 진행 트랙 (물결 모양 Wavy 블루 아크) -->
+        <path
+            android:pathData="M 572.9,86.4 C 596.1,64.9 622.9,47.9 643.2,54.4 C 663.4,61.0 675.3,90.4 681.6,121.3 C 688.0,152.2 690.9,180.3 705.0,189.6 C 719.1,198.9 746.0,190.5 776.9,184.2 C 807.9,177.9 839.6,177.3 853.5,193.4 C 867.5,209.4 862.4,240.8 851.8,270.5 C 841.1,300.2 829.1,325.7 836.3,341.0 C 843.5,356.2 870.9,363.1 900.6,373.7 C 930.3,384.4 957.8,400.3 961.3,421.3 C 964.9,442.2 944.3,466.4 919.8,486.3 C 895.3,506.2 871.8,521.7 870.0,538.5 C 868.3,555.3 888.1,575.3 908.0,599.8 C 927.8,624.4 943.1,652.2 935.3,672.0 C 927.4,691.8 897.3,701.7 866.0,706.0 C 834.7,710.3 806.6,711.4 796.4,724.9 C 786.1,738.3 792.7,765.7 797.0,797.0"
+            android:strokeColor="#5295F7"
+            android:strokeWidth="42"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000" />
 
-    <!-- Left Stem -->
-    <path
-        android:pathData="M 48,42 L 51,42 L 51,63 L 48,63 Z"
-        android:fillColor="#8C98AC" />
+        <!-- 3. 중앙 음표 아이콘 (음표 헤드 내부가 투명하게 뚫린 도넛형 8분음표 쌍) -->
+        <path
+            android:fillColor="#444C5C"
+            android:fillType="evenOdd"
+            android:pathData="M 399,380 A 18,18 0 0,1 414,361 L 639,301 A 18,18 0 0,1 653,318 L 653,580 A 68,68 0 1,1 619,521.1 L 619,390 L 433,434 L 433,645 A 68,68 0 1,1 399,586.1 Z M 365,611 A 34,34 0 1,0 365,679 A 34,34 0 1,0 365,611 Z M 585,546 A 34,34 0 1,0 585,614 A 34,34 0 1,0 585,546 Z" />
 
-    <!-- Right Stem -->
-    <path
-        android:pathData="M 64,39 L 67,39 L 67,59 L 64,59 Z"
-        android:fillColor="#8C98AC" />
-
-    <!-- Left Note Head -->
-    <path
-        android:pathData="M 47,60 A 5,4 0 1,0 47,68 A 5,4 0 1,0 47,60 Z"
-        android:fillColor="#768194" />
-
-    <!-- Right Note Head -->
-    <path
-        android:pathData="M 63,56 A 5,4 0 1,0 63,64 A 5,4 0 1,0 63,56 Z"
-        android:fillColor="#768194" />
-
-    <!-- Inner Hole for Left Note Head -->
-    <path
-        android:pathData="M 47,62 A 2.2,1.8 0 1,0 47,65.6 A 2.2,1.8 0 1,0 47,62 Z"
-        android:fillColor="#212121" />
-
-    <!-- Inner Hole for Right Note Head -->
-    <path
-        android:pathData="M 63,58 A 2.2,1.8 0 1,0 63,61.6 A 2.2,1.8 0 1,0 63,58 Z"
-        android:fillColor="#212121" />
-
+    </group>
 </vector>

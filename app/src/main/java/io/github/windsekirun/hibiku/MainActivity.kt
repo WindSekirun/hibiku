@@ -1,7 +1,9 @@
 package io.github.windsekirun.hibiku
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -27,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.darkColorScheme
@@ -91,6 +95,15 @@ class MainActivity : ComponentActivity() {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         }
                         startActivity(intent)
+                    },
+                    onHideIcon = {
+                        // 런처 아이콘 비활성화 (PackageManager에 의해 시스템에 영속 저장됨)
+                        packageManager.setComponentEnabledSetting(
+                            ComponentName(this, MainActivity::class.java),
+                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                            PackageManager.DONT_KILL_APP
+                        )
+                        finish()
                     }
                 )
             }
@@ -108,11 +121,13 @@ fun isNotificationServiceEnabled(context: Context): Boolean {
 fun MainAppScreen(
     onOpenNotificationSettings: () -> Unit,
     onLaunchImmersivePlayer: () -> Unit,
+    onHideIcon: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var hasPermission by remember { mutableStateOf(isNotificationServiceEnabled(context)) }
+    var showHideIconDialog by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -344,7 +359,88 @@ fun MainAppScreen(
                     )
                 }
             }
+
+            // Hide App Icon Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF1E1A2A)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.main_hide_icon_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = stringResource(R.string.main_hide_icon_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        lineHeight = 22.sp
+                    )
+                    Button(
+                        onClick = { showHideIconDialog = true },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4A3F6B),
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.main_hide_icon_button),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
+    }
+
+    // 아이콘 숨기기 확인 다이얼로그
+    if (showHideIconDialog) {
+        AlertDialog(
+            onDismissRequest = { showHideIconDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.main_hide_icon_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "앱 아이콘을 숨기면 런처에서 바로 열 수 없게 됩니다.\n위젯 설정은 위젯 길게 누르기로 접근할 수 있습니다.\n계속하시겠습니까?",
+                    color = Color.White.copy(alpha = 0.85f)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showHideIconDialog = false
+                        onHideIcon()
+                    }
+                ) {
+                    Text(
+                        text = "숨기고 종료",
+                        color = Color(0xFFEF4444),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showHideIconDialog = false }) {
+                    Text(text = "취소")
+                }
+            }
+        )
     }
 }
 
@@ -363,6 +459,7 @@ fun MainAppScreenGrantedPreview() {
             primary = Color(0xFF5CB3FF),
             onPrimary = Color.Black
         )
+
     ) {
         MainAppScreen(
             onOpenNotificationSettings = {},

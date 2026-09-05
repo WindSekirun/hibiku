@@ -18,6 +18,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -715,10 +717,10 @@ fun AudioOutputIconButton(
             .border(1.dp, accentColor.copy(alpha = 0.35f), CircleShape)
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_widget_immersive),
+            painter = painterResource(id = R.drawable.ic_audio_output),
             contentDescription = "Audio Output Switcher",
             tint = Color.White.copy(alpha = 0.9f),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(20.dp)
         )
     }
 }
@@ -793,10 +795,10 @@ fun QueueIconButton(
             .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_widget_next),
+            painter = painterResource(id = R.drawable.ic_queue_list),
             contentDescription = "Playback Queue",
             tint = Color.White.copy(alpha = 0.9f),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(20.dp)
         )
     }
 }
@@ -886,6 +888,8 @@ fun QueueBottomSheet(
     accentColor: Color,
     onDismiss: () -> Unit
 ) {
+    val items = playbackState.queueItems
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF16181D),
@@ -917,44 +921,112 @@ fun QueueBottomSheet(
                 )
             }
 
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = Color.White.copy(alpha = 0.08f),
-                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 380.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(accentColor)
-                    )
+                if (items.isNotEmpty()) {
+                    items.forEachIndexed { index, queueItem ->
+                        val isCurrent = (index == playbackState.queueIndex - 1) ||
+                                (queueItem.title == playbackState.title)
+                        val cardBorder = if (isCurrent) BorderStroke(1.dp, accentColor.copy(alpha = 0.6f)) else BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                        val cardBg = if (isCurrent) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.05f)
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = playbackState.title.ifEmpty { "No Media Playing" },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = playbackState.artist.ifEmpty { "StandBy Mode" },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = cardBg,
+                            border = cardBorder,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    text = "${index + 1}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isCurrent) accentColor else Color.White.copy(alpha = 0.5f),
+                                    modifier = Modifier.width(24.dp),
+                                    textAlign = TextAlign.Center
+                                )
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = queueItem.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (queueItem.artist.isNotBlank()) {
+                                        Text(
+                                            text = queueItem.artist,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color.White.copy(alpha = 0.6f),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+
+                                if (isCurrent) {
+                                    Text(
+                                        text = "NOW PLAYING",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = accentColor
+                                    )
+                                }
+                            }
+                        }
                     }
+                } else {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(CircleShape)
+                                    .background(accentColor)
+                            )
 
-                    Text(
-                        text = "NOW PLAYING",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor
-                    )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = playbackState.title.ifEmpty { "No Media Playing" },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = playbackState.artist.ifEmpty { "StandBy Mode" },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.7f)
+                                )
+                            }
+
+                            Text(
+                                text = "NOW PLAYING",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor
+                            )
+                        }
+                    }
                 }
             }
         }
