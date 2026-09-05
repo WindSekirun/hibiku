@@ -5,5 +5,6 @@ data class WidgetConfig(
     val borderColorHex: String = "#FFFFFF",
     val useDynamicColor: Boolean = true,
     val textVisible: Boolean = true,
-    val shapeStyle: M3ShapeStyle = M3ShapeStyle.CIRCLE
+    val shapeStyle: M3ShapeStyle = M3ShapeStyle.CIRCLE,
+    val useBlurBackground: Boolean = true
 )

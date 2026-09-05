@@ -7,6 +7,11 @@ import io.github.windsekirun.hibiku.domain.model.RingStyle
 import io.github.windsekirun.hibiku.domain.model.WidgetConfig
 import io.github.windsekirun.hibiku.feature.ui.immersive.ImmersiveShapeStyle
 
+enum class SeekBarStyle(val label: String) {
+    WAVY("물결 웨이브"),
+    FLUID_WAVE("플루이드 웨이브")
+}
+
 /**
  * Repository responsible for persisting and retrieving per-widget configurations.
  */
@@ -27,6 +32,7 @@ class WidgetPreferencesRepository(
             .putBoolean(keyDynamicColor(appWidgetId), config.useDynamicColor)
             .putBoolean(keyTextVisible(appWidgetId), config.textVisible)
             .putString(keyShapeStyle(appWidgetId), config.shapeStyle.name)
+            .putBoolean(keyUseBlur(appWidgetId), config.useBlurBackground)
             .apply()
     }
 
@@ -64,12 +70,20 @@ class WidgetPreferencesRepository(
             runCatching { M3ShapeStyle.valueOf(it) }.getOrNull()
         } ?: defaultConfig.shapeStyle
 
+        val useBlurKey = keyUseBlur(appWidgetId)
+        val useBlurBackground = if (preferences.contains(useBlurKey)) {
+            preferences.getBoolean(useBlurKey, defaultConfig.useBlurBackground)
+        } else {
+            defaultConfig.useBlurBackground
+        }
+
         return WidgetConfig(
             ringStyle = ringStyle,
             borderColorHex = borderColorHex,
             useDynamicColor = useDynamicColor,
             textVisible = textVisible,
-            shapeStyle = shapeStyle
+            shapeStyle = shapeStyle,
+            useBlurBackground = useBlurBackground
         )
     }
 
@@ -83,6 +97,7 @@ class WidgetPreferencesRepository(
             .remove(keyDynamicColor(appWidgetId))
             .remove(keyTextVisible(appWidgetId))
             .remove(keyShapeStyle(appWidgetId))
+            .remove(keyUseBlur(appWidgetId))
             .apply()
     }
 
@@ -98,6 +113,7 @@ class WidgetPreferencesRepository(
     companion object {
         const val PREFS_NAME = "music_widget_preferences"
         const val KEY_IMMERSIVE_SHAPE = "immersive_shape_style"
+        const val KEY_SEEK_BAR_STYLE = "immersive_seek_bar_style"
 
         private val keyRegex = Regex("""^widget_(-?\d+)_.+""")
 
@@ -106,6 +122,7 @@ class WidgetPreferencesRepository(
         fun keyDynamicColor(appWidgetId: Int): String = "widget_${appWidgetId}_dynamic_color"
         fun keyTextVisible(appWidgetId: Int): String = "widget_${appWidgetId}_text_visible"
         fun keyShapeStyle(appWidgetId: Int): String = "widget_${appWidgetId}_shape_style"
+        fun keyUseBlur(appWidgetId: Int): String = "widget_${appWidgetId}_use_blur"
         fun keyMinimalOverlay(appWidgetId: Int): String = "widget_${appWidgetId}_minimal_overlay"
     }
 
@@ -138,5 +155,19 @@ class WidgetPreferencesRepository(
         return name?.let {
             runCatching { ImmersiveShapeStyle.valueOf(it) }.getOrNull()
         } ?: ImmersiveShapeStyle.SCALLOP
+    }
+
+    /**
+     * Saves and retrieves global Immersive Player seek bar style selection.
+     */
+    fun saveSeekBarStyle(style: SeekBarStyle) {
+        preferences.edit().putString(KEY_SEEK_BAR_STYLE, style.name).apply()
+    }
+
+    fun getSeekBarStyle(): SeekBarStyle {
+        val name = preferences.getString(KEY_SEEK_BAR_STYLE, null)
+        return name?.let {
+            runCatching { SeekBarStyle.valueOf(it) }.getOrNull()
+        } ?: SeekBarStyle.WAVY
     }
 }

@@ -88,7 +88,8 @@ fun MusicWidget4x2Content(
     WidgetBackground(
         artwork = playbackState.albumArt,
         accentColor = accentColor,
-        density = density
+        density = density,
+        useBlurBackground = config.useBlurBackground
     ) {
         GlanceRow(
             modifier = GlanceModifier

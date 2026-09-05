@@ -121,7 +121,7 @@ fun isNotificationServiceEnabled(context: Context): Boolean {
 fun MainAppScreen(
     onOpenNotificationSettings: () -> Unit,
     onLaunchImmersivePlayer: () -> Unit,
-    onHideIcon: () -> Unit = {},
+    onHideIcon: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -463,7 +463,8 @@ fun MainAppScreenGrantedPreview() {
     ) {
         MainAppScreen(
             onOpenNotificationSettings = {},
-            onLaunchImmersivePlayer = {}
+            onLaunchImmersivePlayer = {},
+            onHideIcon = {}
         )
     }
 }

@@ -81,7 +81,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
 
         registerScreenReceiver()
-        registerPowerReceiver()
 
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
         val isScreenOn = powerManager?.isInteractive ?: true
@@ -99,7 +98,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
 
         unregisterScreenReceiver()
-        unregisterPowerReceiver()
         detachActiveController()
         setupActionHandler(null)
         ticker.stop()
@@ -109,7 +107,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         unregisterScreenReceiver()
-        unregisterPowerReceiver()
         detachActiveController()
         setupActionHandler(null)
         ticker.stop()
@@ -142,37 +139,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
             }
             isReceiverRegistered = false
         }
-    }
-
-    private var powerReceiver: PowerConnectionReceiver? = null
-
-    private fun registerPowerReceiver() {
-        if (powerReceiver == null) {
-            try {
-                val receiver = PowerConnectionReceiver()
-                val filter = IntentFilter(Intent.ACTION_POWER_CONNECTED)
-                ContextCompat.registerReceiver(
-                    this,
-                    receiver,
-                    filter,
-                    ContextCompat.RECEIVER_EXPORTED
-                )
-                powerReceiver = receiver
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to register power connection receiver", e)
-            }
-        }
-    }
-
-    private fun unregisterPowerReceiver() {
-        powerReceiver?.let {
-            try {
-                unregisterReceiver(it)
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to unregister power connection receiver", e)
-            }
-        }
-        powerReceiver = null
     }
 
     private fun queryActiveSessions() {
@@ -218,13 +184,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         val playbackState = controller.playbackState
         val metadata = controller.metadata
 
-        val current = MediaPlaybackRepository.playbackState.value
-        val isPlaying = when (playbackState?.state) {
-            PlaybackState.STATE_PLAYING -> true
-            PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR -> false
-            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING, PlaybackState.STATE_FAST_FORWARDING, PlaybackState.STATE_REWINDING -> current.isPlaying
-            else -> playbackState?.state == PlaybackState.STATE_PLAYING
-        }
+        val isPlaying = playbackState?.state == PlaybackState.STATE_PLAYING
         val positionMs = playbackState?.position ?: 0L
 
         val title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
@@ -282,14 +242,9 @@ class MediaNotificationListenerService : NotificationListenerService() {
     }
 
     private fun handlePlaybackStateChanged(state: PlaybackState?) {
-        val current = MediaPlaybackRepository.playbackState.value
-        val isPlaying = when (state?.state) {
-            PlaybackState.STATE_PLAYING -> true
-            PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR -> false
-            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING, PlaybackState.STATE_FAST_FORWARDING, PlaybackState.STATE_REWINDING -> current.isPlaying
-            else -> state?.state == PlaybackState.STATE_PLAYING
-        }
+        val isPlaying = state?.state == PlaybackState.STATE_PLAYING
         val rawPosition = state?.position ?: -1L
+        val current = MediaPlaybackRepository.playbackState.value
 
         // Preserve current valid positionMs if rawPosition temporarily drops to <= 0 during custom action/state transitions
         val positionMs = when {
@@ -345,14 +300,8 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
         MediaPlaybackRepository.setActionHandler(object : MediaPlaybackRepository.ActionHandler {
             override fun onPlayPause() {
-                val repositoryState = MediaPlaybackRepository.playbackState.value.isPlaying
-                val sessionState = controller.playbackState?.state
-                val isCurrentlyPlaying = repositoryState ||
-                        sessionState == PlaybackState.STATE_PLAYING ||
-                        sessionState == PlaybackState.STATE_BUFFERING ||
-                        sessionState == PlaybackState.STATE_CONNECTING
-
-                if (isCurrentlyPlaying) {
+                val isPlaying = controller.playbackState?.state == PlaybackState.STATE_PLAYING
+                if (isPlaying) {
                     controller.transportControls.pause()
                 } else {
                     controller.transportControls.play()

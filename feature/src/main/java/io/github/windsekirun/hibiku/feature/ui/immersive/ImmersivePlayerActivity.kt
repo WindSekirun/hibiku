@@ -17,6 +17,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -52,6 +53,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -61,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -75,6 +78,7 @@ import io.github.windsekirun.hibiku.core.graphics.PaletteExtractor
 import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
 import io.github.windsekirun.hibiku.feature.R
+import io.github.windsekirun.hibiku.feature.data.SeekBarStyle
 import io.github.windsekirun.hibiku.feature.data.WidgetPreferencesRepository
 
 class ImmersivePlayerActivity : ComponentActivity() {
@@ -159,6 +163,8 @@ fun ImmersivePlayerScreen(
     val accentColor = Color(accentColorInt)
 
     var currentShape by rememberSaveable { mutableStateOf(repository.getImmersiveShape()) }
+    var currentSeekBarStyle by rememberSaveable { mutableStateOf(repository.getSeekBarStyle()) }
+
     var isShapeBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
     var isAudioBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
     var isQueueBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -166,11 +172,29 @@ fun ImmersivePlayerScreen(
     val darkBackground = Color(0xFF0B0C0E)
     val safePadding = WindowInsets.safeDrawing.asPaddingValues()
 
+    var dragYAmount by remember { mutableFloatStateOf(0f) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(darkBackground)
             .padding(safePadding)
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onDragStart = { dragYAmount = 0f },
+                    onDragEnd = {
+                        if (dragYAmount > 120.dp.toPx()) {
+                            onClose()
+                        }
+                        dragYAmount = 0f
+                    },
+                    onDragCancel = { dragYAmount = 0f },
+                    onVerticalDrag = { change, dragAmount ->
+                        change.consume()
+                        dragYAmount += dragAmount
+                    }
+                )
+            }
     ) {
         // Top action bar with Close button and 3-dots MoreVert Menu button
         Row(
@@ -194,7 +218,7 @@ fun ImmersivePlayerScreen(
                 )
             }
 
-            // 3-Dots More Menu Button (opens BottomSheet for shape selection)
+            // 3-Dots More Menu Button (opens BottomSheet for shape & seekbar selection)
             IconButton(
                 onClick = { isShapeBottomSheetOpen = true },
                 modifier = Modifier
@@ -210,7 +234,7 @@ fun ImmersivePlayerScreen(
             }
         }
 
-        // Modal Bottom Sheet for Shape Selection
+        // Modal Bottom Sheet for Shape & SeekBar Style Selection
         if (isShapeBottomSheetOpen) {
             ModalBottomSheet(
                 onDismissRequest = { isShapeBottomSheetOpen = false },
@@ -221,33 +245,79 @@ fun ImmersivePlayerScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    Text(
-                        text = "앨범아트 모양 설정",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "앨범아트 모양 설정",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        ImmersiveShapeStyle.entries.forEach { style ->
-                            ShapePreviewCard(
-                                style = style,
-                                isSelected = style == currentShape,
-                                accentColor = accentColor,
-                                bitmap = playbackState.albumArt,
-                                onClick = {
-                                    currentShape = style
-                                    repository.saveImmersiveShape(style)
-                                    isShapeBottomSheetOpen = false
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            ImmersiveShapeStyle.entries.forEach { style ->
+                                ShapePreviewCard(
+                                    style = style,
+                                    isSelected = style == currentShape,
+                                    accentColor = accentColor,
+                                    bitmap = playbackState.albumArt,
+                                    onClick = {
+                                        currentShape = style
+                                        repository.saveImmersiveShape(style)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "재생바(SeekBar) 스타일 설정",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            SeekBarStyle.entries.forEach { style ->
+                                val isSelected = style == currentSeekBarStyle
+                                val cardBg = if (isSelected) accentColor.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f)
+                                val border = if (isSelected) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
+
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = cardBg,
+                                    border = border,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            currentSeekBarStyle = style
+                                            repository.saveSeekBarStyle(style)
+                                        }
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(
+                                            text = style.label,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            color = Color.White
+                                        )
+                                    }
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -281,6 +351,7 @@ fun ImmersivePlayerScreen(
                 LandscapeImmersiveLayout(
                     playbackState = playbackState,
                     currentShape = currentShape,
+                    seeBarStyle = currentSeekBarStyle,
                     accentColor = accentColor,
                     onPlayPause = onPlayPause,
                     onSkipPrevious = onSkipPrevious,
@@ -295,6 +366,7 @@ fun ImmersivePlayerScreen(
                 PortraitImmersiveLayout(
                     playbackState = playbackState,
                     currentShape = currentShape,
+                    seeBarStyle = currentSeekBarStyle,
                     accentColor = accentColor,
                     onPlayPause = onPlayPause,
                     onSkipPrevious = onSkipPrevious,
@@ -314,6 +386,7 @@ fun ImmersivePlayerScreen(
 fun LandscapeImmersiveLayout(
     playbackState: MediaPlaybackState,
     currentShape: ImmersiveShapeStyle,
+    seeBarStyle: SeekBarStyle,
     accentColor: Color,
     onPlayPause: () -> Unit,
     onSkipPrevious: () -> Unit,
@@ -327,11 +400,11 @@ fun LandscapeImmersiveLayout(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp, vertical = 16.dp),
+            .padding(horizontal = 32.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(36.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Left Column: Album Art with Ambient Glow
+        // Left Column: Album Art with Ambient Glow (equal top and bottom margins)
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -341,7 +414,7 @@ fun LandscapeImmersiveLayout(
             // Ambient radial glow behind album art
             Box(
                 modifier = Modifier
-                    .size(420.dp)
+                    .size(360.dp)
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
@@ -356,13 +429,13 @@ fun LandscapeImmersiveLayout(
             ArtisticAlbumArt(
                 bitmap = playbackState.albumArt,
                 shape = currentShape,
-                modifier = Modifier.size(350.dp),
+                modifier = Modifier.size(290.dp),
                 glowColor = accentColor,
                 contentDescription = playbackState.title.ifEmpty { "Album Artwork" }
             )
         }
 
-        // Right Column: Track metadata, squiggly seekbar, controls, output chip
+        // Right Column: Track metadata, seekbar, controls, output chip
         Column(
             modifier = Modifier
                 .weight(1.2f)
@@ -389,22 +462,32 @@ fun LandscapeImmersiveLayout(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            SquigglySeekBar(
-                positionMs = playbackState.positionMs,
-                durationMs = playbackState.durationMs,
-                isPlaying = playbackState.isPlaying,
-                accentColor = accentColor,
-                onSeek = onSeek
-            )
+            if (seeBarStyle == SeekBarStyle.WAVY) {
+                SquigglySeekBar(
+                    positionMs = playbackState.positionMs,
+                    durationMs = playbackState.durationMs,
+                    isPlaying = playbackState.isPlaying,
+                    accentColor = accentColor,
+                    onSeek = onSeek
+                )
+            } else {
+                FluidWaveSeekBar(
+                    positionMs = playbackState.positionMs,
+                    durationMs = playbackState.durationMs,
+                    isPlaying = playbackState.isPlaying,
+                    accentColor = accentColor,
+                    onSeek = onSeek
+                )
+            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat
+            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat (centered)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Shuffle toggle button
@@ -492,6 +575,7 @@ fun LandscapeImmersiveLayout(
 fun PortraitImmersiveLayout(
     playbackState: MediaPlaybackState,
     currentShape: ImmersiveShapeStyle,
+    seeBarStyle: SeekBarStyle,
     accentColor: Color,
     onPlayPause: () -> Unit,
     onSkipPrevious: () -> Unit,
@@ -571,13 +655,23 @@ fun PortraitImmersiveLayout(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            SquigglySeekBar(
-                positionMs = playbackState.positionMs,
-                durationMs = playbackState.durationMs,
-                isPlaying = playbackState.isPlaying,
-                accentColor = accentColor,
-                onSeek = onSeek
-            )
+            if (seeBarStyle == SeekBarStyle.WAVY) {
+                SquigglySeekBar(
+                    positionMs = playbackState.positionMs,
+                    durationMs = playbackState.durationMs,
+                    isPlaying = playbackState.isPlaying,
+                    accentColor = accentColor,
+                    onSeek = onSeek
+                )
+            } else {
+                FluidWaveSeekBar(
+                    positionMs = playbackState.positionMs,
+                    durationMs = playbackState.durationMs,
+                    isPlaying = playbackState.isPlaying,
+                    accentColor = accentColor,
+                    onSeek = onSeek
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -717,10 +811,10 @@ fun AudioOutputIconButton(
             .border(1.dp, accentColor.copy(alpha = 0.35f), CircleShape)
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_audio_output),
+            painter = painterResource(id = R.drawable.ic_widget_immersive),
             contentDescription = "Audio Output Switcher",
             tint = Color.White.copy(alpha = 0.9f),
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -795,10 +889,10 @@ fun QueueIconButton(
             .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_queue_list),
+            painter = painterResource(id = R.drawable.ic_widget_next),
             contentDescription = "Playback Queue",
             tint = Color.White.copy(alpha = 0.9f),
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -888,8 +982,6 @@ fun QueueBottomSheet(
     accentColor: Color,
     onDismiss: () -> Unit
 ) {
-    val items = playbackState.queueItems
-
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF16181D),
@@ -921,112 +1013,44 @@ fun QueueBottomSheet(
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 380.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                if (items.isNotEmpty()) {
-                    items.forEachIndexed { index, queueItem ->
-                        val isCurrent = (index == playbackState.queueIndex - 1) ||
-                                (queueItem.title == playbackState.title)
-                        val cardBorder = if (isCurrent) BorderStroke(1.dp, accentColor.copy(alpha = 0.6f)) else BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
-                        val cardBg = if (isCurrent) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.05f)
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(accentColor)
+                    )
 
-                        Surface(
-                            shape = RoundedCornerShape(14.dp),
-                            color = cardBg,
-                            border = cardBorder,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Text(
-                                    text = "${index + 1}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isCurrent) accentColor else Color.White.copy(alpha = 0.5f),
-                                    modifier = Modifier.width(24.dp),
-                                    textAlign = TextAlign.Center
-                                )
-
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = queueItem.title,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                                        color = Color.White,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    if (queueItem.artist.isNotBlank()) {
-                                        Text(
-                                            text = queueItem.artist,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White.copy(alpha = 0.6f),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-
-                                if (isCurrent) {
-                                    Text(
-                                        text = "NOW PLAYING",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = accentColor
-                                    )
-                                }
-                            }
-                        }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = playbackState.title.ifEmpty { "No Media Playing" },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = playbackState.artist.ifEmpty { "StandBy Mode" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
                     }
-                } else {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color.White.copy(alpha = 0.08f),
-                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(accentColor)
-                            )
 
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = playbackState.title.ifEmpty { "No Media Playing" },
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = playbackState.artist.ifEmpty { "StandBy Mode" },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.7f)
-                                )
-                            }
-
-                            Text(
-                                text = "NOW PLAYING",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = accentColor
-                            )
-                        }
-                    }
+                    Text(
+                        text = "NOW PLAYING",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
                 }
             }
         }
@@ -1060,6 +1084,7 @@ fun ImmersivePlayerPortraitPreview() {
         PortraitImmersiveLayout(
             playbackState = sampleState,
             currentShape = ImmersiveShapeStyle.SCALLOP,
+            seeBarStyle = SeekBarStyle.WAVY,
             accentColor = Color(0xFF5CB3FF),
             onPlayPause = {},
             onSkipPrevious = {},
@@ -1094,6 +1119,7 @@ fun ImmersivePlayerLandscapePreview() {
         LandscapeImmersiveLayout(
             playbackState = sampleState,
             currentShape = ImmersiveShapeStyle.SCALLOP,
+            seeBarStyle = SeekBarStyle.WAVY,
             accentColor = Color(0xFF5CB3FF),
             onPlayPause = {},
             onSkipPrevious = {},

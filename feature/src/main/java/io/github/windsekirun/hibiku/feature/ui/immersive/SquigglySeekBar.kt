@@ -306,3 +306,175 @@ fun SquigglySeekBarPausedPreview() {
     }
 }
 
+@Composable
+fun FluidWaveProgressBar(
+    progress: Float,
+    onProgressChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    isPlaying: Boolean = true,
+    activeTrackColor: Color = Color(0xFFE040FB),
+    waveOverlayColor: Color = Color(0xFFFF80AB),
+    inactiveTrackColor: Color = Color.White.copy(alpha = 0.25f),
+    thumbInnerColor: Color = Color(0xFF1E1B2E)
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "WavePhaseTransition")
+    val phase by if (isPlaying) {
+        infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = (2 * Math.PI).toFloat(),
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1800, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "WavePhase"
+        )
+    } else {
+        remember { mutableFloatStateOf(0f) }
+    }
+
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    onProgressChange((offset.x / size.width).coerceIn(0f, 1f))
+                }
+            }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures { change, _ ->
+                    change.consume()
+                    onProgressChange((change.position.x / size.width).coerceIn(0f, 1f))
+                }
+            }
+    ) {
+        val width = size.width
+        val height = size.height
+        val trackY = height * 0.65f
+        val activeWidth = (width * progress.coerceIn(0f, 1f))
+
+        val trackStrokeWidth = 4.dp.toPx()
+        val thumbRadius = 8.dp.toPx()
+        val maxAmplitude = 10.dp.toPx()
+        val waveLength = 110.dp.toPx()
+
+        drawLine(
+            color = inactiveTrackColor,
+            start = Offset(0f, trackY),
+            end = Offset(width, trackY),
+            strokeWidth = trackStrokeWidth,
+            cap = StrokeCap.Round
+        )
+
+        if (activeWidth > 1f) {
+            val wavePath = Path().apply {
+                moveTo(0f, trackY)
+                val step = 3f
+                var currentX = 0f
+
+                while (currentX <= activeWidth) {
+                    val damp = sin(Math.PI * (currentX / activeWidth)).toFloat()
+                    val y = trackY - (sin((currentX / waveLength) * 2 * Math.PI + phase).toFloat() * maxAmplitude * damp)
+                    lineTo(currentX, y)
+                    currentX += step
+                }
+
+                lineTo(activeWidth, trackY)
+                close()
+            }
+
+            drawPath(
+                path = wavePath,
+                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        waveOverlayColor.copy(alpha = 0.55f),
+                        waveOverlayColor.copy(alpha = 0.15f)
+                    ),
+                    startY = trackY - maxAmplitude,
+                    endY = trackY
+                )
+            )
+
+            drawLine(
+                color = activeTrackColor,
+                start = Offset(0f, trackY),
+                end = Offset(activeWidth, trackY),
+                strokeWidth = trackStrokeWidth,
+                cap = StrokeCap.Round
+            )
+        }
+
+        val thumbCenter = Offset(activeWidth, trackY)
+        drawCircle(
+            color = Color.White,
+            radius = thumbRadius,
+            center = thumbCenter,
+            style = Stroke(width = 3.dp.toPx())
+        )
+        drawCircle(
+            color = thumbInnerColor,
+            radius = thumbRadius - 3.dp.toPx(),
+            center = thumbCenter
+        )
+    }
+}
+
+@Composable
+fun FluidWaveSeekBar(
+    positionMs: Long,
+    durationMs: Long,
+    isPlaying: Boolean,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onSeek: (Long) -> Unit
+) {
+    var isDragging by remember { mutableStateOf(false) }
+    var dragRatio by remember { mutableFloatStateOf(0f) }
+
+    val currentRatio = if (durationMs > 0L) {
+        (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
+    } else 0f
+
+    val displayRatio = if (isDragging) dragRatio else currentRatio
+    val displayPositionMs = if (isDragging) {
+        (dragRatio * durationMs).toLong()
+    } else positionMs
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        FluidWaveProgressBar(
+            progress = displayRatio,
+            onProgressChange = { newRatio ->
+                val targetMs = (newRatio * durationMs).toLong()
+                onSeek(targetMs)
+            },
+            isPlaying = isPlaying,
+            activeTrackColor = accentColor,
+            waveOverlayColor = accentColor,
+            inactiveTrackColor = Color.White.copy(alpha = 0.25f),
+            thumbInnerColor = Color(0xFF1E1B2E)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = formatTimeMs(displayPositionMs),
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White.copy(alpha = 0.75f)
+            )
+            Text(
+                text = formatTimeMs(durationMs),
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White.copy(alpha = 0.75f)
+            )
+        }
+    }
+}
+

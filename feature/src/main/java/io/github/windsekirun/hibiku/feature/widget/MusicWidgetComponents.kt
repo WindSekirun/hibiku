@@ -68,6 +68,7 @@ fun WidgetBackground(
     artwork: Bitmap?,
     accentColor: Int,
     density: Float,
+    useBlurBackground: Boolean = true,
     modifier: GlanceModifier = GlanceModifier.fillMaxSize(),
     cornerRadiusDp: Dp = 32.dp,
     content: @Composable () -> Unit
@@ -77,15 +78,15 @@ fun WidgetBackground(
     val hPx = minOf((size.height.value * density).toInt(), 300).coerceAtLeast(64)
     val cornerRadiusPx = cornerRadiusDp.value * density
 
-    val bgBitmap = remember(artwork, wPx, hPx, accentColor) {
-        if (artwork != null && !artwork.isRecycled) {
+    val bgBitmap = remember(artwork, wPx, hPx, accentColor, useBlurBackground) {
+        if (useBlurBackground && artwork != null && !artwork.isRecycled) {
             WidgetBitmapRenderer.renderBlurredBackground(
                 artwork = artwork,
                 widthPx = wPx,
                 heightPx = hPx,
                 dimAlpha = 0.45f,
                 cornerRadiusPx = cornerRadiusPx,
-                strokeColor = (accentColor and 0x00FFFFFF) or 0x33000000
+                strokeColor = 0
             )
         } else {
             null

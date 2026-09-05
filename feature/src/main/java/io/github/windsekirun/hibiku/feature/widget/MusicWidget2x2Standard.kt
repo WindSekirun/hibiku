@@ -49,12 +49,14 @@ class MusicWidget2x2Standard : GlanceAppWidget() {
             val (config, accentColor) = resolveWidgetConfigAndColor(context, id, playbackState.albumArt)
             val density = context.resources.displayMetrics.density
 
-            MusicWidget2x2StandardContent(
-                playbackState = playbackState,
-                config = config,
-                accentColor = accentColor,
-                density = density
-            )
+            androidx.compose.runtime.key(playbackState.albumArt == null, playbackState.title, playbackState.artist, playbackState.isPlaying) {
+                MusicWidget2x2StandardContent(
+                    playbackState = playbackState,
+                    config = config,
+                    accentColor = accentColor,
+                    density = density
+                )
+            }
         }
     }
 }
@@ -85,7 +87,8 @@ fun MusicWidget2x2StandardContent(
     WidgetBackground(
         artwork = playbackState.albumArt,
         accentColor = accentColor,
-        density = density
+        density = density,
+        useBlurBackground = config.useBlurBackground
     ) {
         GlanceColumn(
             modifier = GlanceModifier
