@@ -6,8 +6,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaMetadata
 import android.media.session.MediaController
+import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.os.Bundle
 import android.os.PowerManager
 import android.service.notification.NotificationListenerService
 import android.util.Log
@@ -41,11 +43,23 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     private val controllerCallback = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) {
-            handlePlaybackStateChanged(state)
+            activeController?.let { updatePlaybackFromController(it) }
         }
 
         override fun onMetadataChanged(metadata: MediaMetadata?) {
-            handleMetadataChanged(metadata)
+            activeController?.let { updatePlaybackFromController(it) }
+        }
+
+        override fun onQueueChanged(queue: MutableList<MediaSession.QueueItem>?) {
+            activeController?.let { updatePlaybackFromController(it) }
+        }
+
+        override fun onExtrasChanged(extras: Bundle?) {
+            activeController?.let { updatePlaybackFromController(it) }
+        }
+
+        override fun onQueueTitleChanged(title: CharSequence?) {
+            activeController?.let { updatePlaybackFromController(it) }
         }
 
         override fun onSessionDestroyed() {
@@ -81,6 +95,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
 
         registerScreenReceiver()
+        registerPowerReceiver()
 
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
         val isScreenOn = powerManager?.isInteractive ?: true
@@ -98,6 +113,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
 
         unregisterScreenReceiver()
+        unregisterPowerReceiver()
         detachActiveController()
         setupActionHandler(null)
         ticker.stop()
@@ -107,6 +123,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         unregisterScreenReceiver()
+        unregisterPowerReceiver()
         detachActiveController()
         setupActionHandler(null)
         ticker.stop()
@@ -139,6 +156,37 @@ class MediaNotificationListenerService : NotificationListenerService() {
             }
             isReceiverRegistered = false
         }
+    }
+
+    private var powerReceiver: PowerConnectionReceiver? = null
+
+    private fun registerPowerReceiver() {
+        if (powerReceiver == null) {
+            try {
+                val receiver = PowerConnectionReceiver()
+                val filter = IntentFilter(Intent.ACTION_POWER_CONNECTED)
+                ContextCompat.registerReceiver(
+                    this,
+                    receiver,
+                    filter,
+                    ContextCompat.RECEIVER_EXPORTED
+                )
+                powerReceiver = receiver
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to register power connection receiver", e)
+            }
+        }
+    }
+
+    private fun unregisterPowerReceiver() {
+        powerReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to unregister power connection receiver", e)
+            }
+        }
+        powerReceiver = null
     }
 
     private fun queryActiveSessions() {
@@ -183,9 +231,14 @@ class MediaNotificationListenerService : NotificationListenerService() {
     private fun updatePlaybackFromController(controller: MediaController) {
         val playbackState = controller.playbackState
         val metadata = controller.metadata
+        val current = MediaPlaybackRepository.playbackState.value
 
-        val isPlaying = playbackState?.state == PlaybackState.STATE_PLAYING
-        val positionMs = playbackState?.position ?: 0L
+        val isPlaying = when (playbackState?.state) {
+            PlaybackState.STATE_PLAYING -> true
+            PlaybackState.STATE_PAUSED, PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR -> false
+            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING, PlaybackState.STATE_FAST_FORWARDING, PlaybackState.STATE_REWINDING -> current.isPlaying
+            else -> playbackState?.state == PlaybackState.STATE_PLAYING
+        }
 
         val title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
             ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
@@ -197,6 +250,14 @@ class MediaNotificationListenerService : NotificationListenerService() {
         val albumArt = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
             ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
         val durationMs = metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+
+        val rawPosition = playbackState?.position ?: 0L
+        val isSameTrack = current.title == title && current.artist == artist
+        val positionMs = when {
+            isSameTrack && rawPosition <= 0L && current.positionMs > 0L && (isPlaying || playbackState?.state == PlaybackState.STATE_BUFFERING) -> current.positionMs
+            rawPosition >= 0L -> rawPosition
+            else -> 0L
+        }
 
         val isShuffleEnabled = playbackState?.extras?.getBoolean("SHUFFLE_ENABLED") ?: false
         val repeatMode = playbackState?.extras?.getInt("REPEAT_MODE") ?: 0
@@ -221,6 +282,21 @@ class MediaNotificationListenerService : NotificationListenerService() {
             else -> 1
         }
 
+        val queueItemsList = runCatching {
+            queue?.mapIndexed { index, item ->
+                val queueTitle = item.description.title?.toString()?.ifBlank { null }
+                    ?: "Track ${index + 1}"
+                val queueArtist = item.description.subtitle?.toString()
+                    ?: item.description.description?.toString()
+                    ?: ""
+                QueueItemInfo(
+                    queueId = item.queueId,
+                    title = queueTitle,
+                    artist = queueArtist
+                )
+            }
+        }.getOrNull() ?: emptyList()
+
         val state = MediaPlaybackState(
             isPlaying = isPlaying,
             title = title,
@@ -233,55 +309,11 @@ class MediaNotificationListenerService : NotificationListenerService() {
             isShuffleEnabled = isShuffleEnabled,
             repeatMode = repeatMode,
             queueIndex = queueIndex,
-            queueSize = queueSize
+            queueSize = queueSize,
+            queueItems = queueItemsList
         )
 
         MediaPlaybackRepository.updatePlaybackState(state)
-        ticker.onPlaybackStateChanged()
-        WidgetUpdateHelper.updateAllWidgets(this)
-    }
-
-    private fun handlePlaybackStateChanged(state: PlaybackState?) {
-        val isPlaying = state?.state == PlaybackState.STATE_PLAYING
-        val rawPosition = state?.position ?: -1L
-        val current = MediaPlaybackRepository.playbackState.value
-
-        // Preserve current valid positionMs if rawPosition temporarily drops to <= 0 during custom action/state transitions
-        val positionMs = when {
-            rawPosition <= 0L && current.positionMs > 0L && (isPlaying || state?.state == PlaybackState.STATE_BUFFERING) -> current.positionMs
-            rawPosition >= 0L -> rawPosition
-            else -> current.positionMs
-        }
-
-        val updated = current.copy(
-            isPlaying = isPlaying,
-            positionMs = positionMs
-        )
-        MediaPlaybackRepository.updatePlaybackState(updated)
-        ticker.onPlaybackStateChanged()
-        WidgetUpdateHelper.updateAllWidgets(this)
-    }
-
-    private fun handleMetadataChanged(metadata: MediaMetadata?) {
-        val title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
-            ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
-            ?: ""
-        val artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST)
-            ?: metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
-            ?: metadata?.getString(MediaMetadata.METADATA_KEY_AUTHOR)
-            ?: ""
-        val albumArt = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
-            ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
-        val durationMs = metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
-
-        val current = MediaPlaybackRepository.playbackState.value
-        val updated = current.copy(
-            title = title,
-            artist = artist,
-            albumArt = albumArt,
-            durationMs = durationMs
-        )
-        MediaPlaybackRepository.updatePlaybackState(updated)
         ticker.onPlaybackStateChanged()
         WidgetUpdateHelper.updateAllWidgets(this)
     }
@@ -300,8 +332,14 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
         MediaPlaybackRepository.setActionHandler(object : MediaPlaybackRepository.ActionHandler {
             override fun onPlayPause() {
-                val isPlaying = controller.playbackState?.state == PlaybackState.STATE_PLAYING
-                if (isPlaying) {
+                val repositoryState = MediaPlaybackRepository.playbackState.value.isPlaying
+                val sessionState = controller.playbackState?.state
+                val isCurrentlyPlaying = repositoryState ||
+                        sessionState == PlaybackState.STATE_PLAYING ||
+                        sessionState == PlaybackState.STATE_BUFFERING ||
+                        sessionState == PlaybackState.STATE_CONNECTING
+
+                if (isCurrentlyPlaying) {
                     controller.transportControls.pause()
                 } else {
                     controller.transportControls.play()

@@ -32,13 +32,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.util.Locale
+import kotlin.math.pow
 import kotlin.math.sin
 
 data class WavePoint(val x: Float, val y: Float)
@@ -306,24 +309,33 @@ fun SquigglySeekBarPausedPreview() {
     }
 }
 
+private data class DynamicWaveSpec(
+    val color: Color,
+    val amplitudeDp: Float,
+    val wavelengthDp: Float,
+    val speedMultiplier: Float,
+    val phaseOffset: Float,
+    val curvatureExponent: Float
+)
+
 @Composable
-fun FluidWaveProgressBar(
+fun GalaxyFluidWaveProgressBar(
     progress: Float,
     onProgressChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    mainColor: Color = Color(0xFFD500F9),
     isPlaying: Boolean = true,
-    activeTrackColor: Color = Color(0xFFE040FB),
-    waveOverlayColor: Color = Color(0xFFFF80AB),
     inactiveTrackColor: Color = Color.White.copy(alpha = 0.25f),
+    thumbBorderColor: Color = Color.White,
     thumbInnerColor: Color = Color(0xFF1E1B2E)
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "WavePhaseTransition")
+    val infiniteTransition = rememberInfiniteTransition(label = "FluidWaveTransition")
     val phase by if (isPlaying) {
         infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = (2 * Math.PI).toFloat(),
             animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 1800, easing = LinearEasing),
+                animation = tween(durationMillis = 2600, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "WavePhase"
@@ -332,10 +344,47 @@ fun FluidWaveProgressBar(
         remember { mutableFloatStateOf(0f) }
     }
 
+    val waveLayers = remember(mainColor) {
+        listOf(
+            DynamicWaveSpec(
+                color = lerp(mainColor, Color.White, 0.05f).copy(alpha = 0.25f),
+                amplitudeDp = 14f,
+                wavelengthDp = 140f,
+                speedMultiplier = 0.7f,
+                phaseOffset = 0.0f,
+                curvatureExponent = 1.0f
+            ),
+            DynamicWaveSpec(
+                color = lerp(mainColor, Color.White, 0.20f).copy(alpha = 0.35f),
+                amplitudeDp = 11f,
+                wavelengthDp = 105f,
+                speedMultiplier = 1.0f,
+                phaseOffset = 1.4f,
+                curvatureExponent = 1.2f
+            ),
+            DynamicWaveSpec(
+                color = lerp(mainColor, Color.White, 0.45f).copy(alpha = 0.50f),
+                amplitudeDp = 8f,
+                wavelengthDp = 80f,
+                speedMultiplier = 1.35f,
+                phaseOffset = 2.8f,
+                curvatureExponent = 1.3f
+            ),
+            DynamicWaveSpec(
+                color = lerp(mainColor, Color.White, 0.75f).copy(alpha = 0.70f),
+                amplitudeDp = 5f,
+                wavelengthDp = 60f,
+                speedMultiplier = 1.75f,
+                phaseOffset = 4.2f,
+                curvatureExponent = 1.5f
+            )
+        )
+    }
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(52.dp)
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
                     onProgressChange((offset.x / size.width).coerceIn(0f, 1f))
@@ -350,13 +399,11 @@ fun FluidWaveProgressBar(
     ) {
         val width = size.width
         val height = size.height
-        val trackY = height * 0.65f
-        val activeWidth = (width * progress.coerceIn(0f, 1f))
+        val trackY = height * 0.72f
+        val activeWidth = width * progress.coerceIn(0f, 1f)
 
-        val trackStrokeWidth = 4.dp.toPx()
-        val thumbRadius = 8.dp.toPx()
-        val maxAmplitude = 10.dp.toPx()
-        val waveLength = 110.dp.toPx()
+        val trackStrokeWidth = 3.5.dp.toPx()
+        val thumbRadius = 7.5.dp.toPx()
 
         drawLine(
             color = inactiveTrackColor,
@@ -366,37 +413,18 @@ fun FluidWaveProgressBar(
             cap = StrokeCap.Round
         )
 
-        if (activeWidth > 1f) {
-            val wavePath = Path().apply {
-                moveTo(0f, trackY)
-                val step = 3f
-                var currentX = 0f
-
-                while (currentX <= activeWidth) {
-                    val damp = sin(Math.PI * (currentX / activeWidth)).toFloat()
-                    val y = trackY - (sin((currentX / waveLength) * 2 * Math.PI + phase).toFloat() * maxAmplitude * damp)
-                    lineTo(currentX, y)
-                    currentX += step
-                }
-
-                lineTo(activeWidth, trackY)
-                close()
+        if (activeWidth > 2f) {
+            waveLayers.forEach { layer ->
+                drawSingleWaveLayer(
+                    layer = layer,
+                    activeWidth = activeWidth,
+                    trackY = trackY,
+                    globalPhase = phase
+                )
             }
 
-            drawPath(
-                path = wavePath,
-                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                    colors = listOf(
-                        waveOverlayColor.copy(alpha = 0.55f),
-                        waveOverlayColor.copy(alpha = 0.15f)
-                    ),
-                    startY = trackY - maxAmplitude,
-                    endY = trackY
-                )
-            )
-
             drawLine(
-                color = activeTrackColor,
+                color = mainColor,
                 start = Offset(0f, trackY),
                 end = Offset(activeWidth, trackY),
                 strokeWidth = trackStrokeWidth,
@@ -406,17 +434,55 @@ fun FluidWaveProgressBar(
 
         val thumbCenter = Offset(activeWidth, trackY)
         drawCircle(
-            color = Color.White,
+            color = thumbBorderColor,
             radius = thumbRadius,
             center = thumbCenter,
-            style = Stroke(width = 3.dp.toPx())
+            style = Stroke(width = 2.8.dp.toPx())
         )
         drawCircle(
             color = thumbInnerColor,
-            radius = thumbRadius - 3.dp.toPx(),
+            radius = thumbRadius - 2.8.dp.toPx(),
             center = thumbCenter
         )
     }
+}
+
+private fun DrawScope.drawSingleWaveLayer(
+    layer: DynamicWaveSpec,
+    activeWidth: Float,
+    trackY: Float,
+    globalPhase: Float
+) {
+    val maxAmplitudePx = layer.amplitudeDp.dp.toPx()
+    val wavelengthPx = layer.wavelengthDp.dp.toPx()
+    val phase = (globalPhase * layer.speedMultiplier) + layer.phaseOffset
+
+    val path = Path().apply {
+        moveTo(0f, trackY)
+
+        val stepPx = 3f
+        var currentX = 0f
+
+        while (currentX <= activeWidth) {
+            val damp = sin(Math.PI * (currentX / activeWidth)).toFloat()
+            val sineNorm = ((1f + sin((currentX / wavelengthPx) * 2 * Math.PI + phase).toFloat()) / 2f)
+                .pow(layer.curvatureExponent)
+
+            val waveHeight = maxAmplitudePx * damp * sineNorm
+            val y = trackY - waveHeight
+
+            lineTo(currentX, y)
+            currentX += stepPx
+        }
+
+        lineTo(activeWidth, trackY)
+        close()
+    }
+
+    drawPath(
+        path = path,
+        color = layer.color
+    )
 }
 
 @Composable
@@ -444,16 +510,16 @@ fun FluidWaveSeekBar(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        FluidWaveProgressBar(
+        GalaxyFluidWaveProgressBar(
             progress = displayRatio,
             onProgressChange = { newRatio ->
                 val targetMs = (newRatio * durationMs).toLong()
                 onSeek(targetMs)
             },
+            mainColor = accentColor,
             isPlaying = isPlaying,
-            activeTrackColor = accentColor,
-            waveOverlayColor = accentColor,
             inactiveTrackColor = Color.White.copy(alpha = 0.25f),
+            thumbBorderColor = Color.White,
             thumbInnerColor = Color(0xFF1E1B2E)
         )
 
