@@ -43,6 +43,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,6 +60,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -160,11 +164,27 @@ fun ImmersivePlayerScreen(
     val context = LocalContext.current
     val repository = remember(context) { WidgetPreferencesRepository(context) }
 
-    val defaultAccent = 0xFF5CB3FF.toInt()
-    val accentColorInt = remember(playbackState.albumArt) {
-        PaletteExtractor.extractAccentColor(playbackState.albumArt, defaultAccent)
+    val defaultAccentInt = 0xFF5CB3FF.toInt()
+    val art = playbackState.albumArt
+    val extractedAccentInt = remember(art) {
+        if (art != null && !art.isRecycled) {
+            PaletteExtractor.extractAccentColor(art, defaultAccentInt)
+        } else {
+            null
+        }
     }
-    val accentColor = Color(accentColorInt)
+
+    // Preserve previous accent color when albumArt is null during track transitions to prevent flashing default color
+    var lastValidAccentInt by remember { mutableIntStateOf(defaultAccentInt) }
+    if (extractedAccentInt != null) {
+        lastValidAccentInt = extractedAccentInt
+    }
+
+    val accentColor by animateColorAsState(
+        targetValue = Color(lastValidAccentInt),
+        animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
+        label = "AccentColorAnimation"
+    )
 
     var currentShape by rememberSaveable { mutableStateOf(repository.getImmersiveShape()) }
     var currentSeekBarStyle by rememberSaveable { mutableStateOf(repository.getSeekBarStyle()) }

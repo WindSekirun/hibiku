@@ -64,8 +64,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import io.github.windsekirun.hibiku.feature.R as FeatureR
 import io.github.windsekirun.hibiku.feature.ui.immersive.ImmersivePlayerActivity
+import io.github.windsekirun.hibiku.feature.R as FeatureR
 
 class MainActivity : ComponentActivity() {
 

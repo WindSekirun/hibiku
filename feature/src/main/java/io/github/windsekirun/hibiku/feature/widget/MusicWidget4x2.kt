@@ -7,8 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.coerceAtLeast
-import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -22,9 +20,6 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Column as GlanceColumn
-import androidx.glance.layout.Row as GlanceRow
-import androidx.glance.layout.Spacer as GlanceSpacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
@@ -39,6 +34,9 @@ import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
 import io.github.windsekirun.hibiku.domain.model.WidgetConfig
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
 import io.github.windsekirun.hibiku.feature.R
+import androidx.glance.layout.Column as GlanceColumn
+import androidx.glance.layout.Row as GlanceRow
+import androidx.glance.layout.Spacer as GlanceSpacer
 
 class MusicWidget4x2 : GlanceAppWidget() {
 

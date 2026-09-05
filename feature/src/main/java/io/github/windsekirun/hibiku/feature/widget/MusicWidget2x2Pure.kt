@@ -15,12 +15,12 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box as GlanceBox
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
 import io.github.windsekirun.hibiku.domain.model.WidgetConfig
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
+import androidx.glance.layout.Box as GlanceBox
 
 /**
  * Pure 2x2 Widget: Transparent background with only circular album art and progress ring.

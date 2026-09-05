@@ -3,7 +3,6 @@ package io.github.windsekirun.hibiku.domain.repository
 import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

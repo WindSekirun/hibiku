@@ -2,7 +2,6 @@ package io.github.windsekirun.hibiku.feature.widget
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -22,10 +21,7 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box as GlanceBox
 import androidx.glance.layout.ContentScale
-import androidx.glance.layout.Row as GlanceRow
-import androidx.glance.layout.Spacer as GlanceSpacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
@@ -37,6 +33,10 @@ import io.github.windsekirun.hibiku.domain.model.RingStyle
 import io.github.windsekirun.hibiku.domain.model.WidgetConfig
 import io.github.windsekirun.hibiku.feature.R
 import io.github.windsekirun.hibiku.feature.data.WidgetPreferencesRepository
+import android.graphics.Color as AndroidColor
+import androidx.glance.layout.Box as GlanceBox
+import androidx.glance.layout.Row as GlanceRow
+import androidx.glance.layout.Spacer as GlanceSpacer
 
 fun resolveWidgetConfigAndColor(
     context: Context,
