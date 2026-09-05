@@ -11,7 +11,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
+import androidx.glance.layout.Box as GlanceBox
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import com.github.windsekirun.musicwidget.domain.model.MediaPlaybackState
@@ -46,7 +46,7 @@ fun MusicWidget2x2PureContent(
     accentColor: Int,
     density: Float
 ) {
-    Box(
+    GlanceBox(
         modifier = GlanceModifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {

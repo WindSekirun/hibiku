@@ -14,16 +14,17 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
+import androidx.glance.layout.Box as GlanceBox
 import androidx.glance.layout.ContentScale
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
+import androidx.glance.layout.Row as GlanceRow
+import androidx.glance.layout.Spacer as GlanceSpacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.size
 import androidx.glance.layout.width
@@ -89,7 +90,7 @@ fun WidgetBackground(
         }
     }
 
-    Box(
+    GlanceBox(
         modifier = modifier
             .cornerRadius(cornerRadiusDp)
             .background(ColorProvider(Color(0xE61C1B1F))),
@@ -117,7 +118,7 @@ fun WidgetArtworkRing(
     sizeDp: Dp,
     density: Float,
     modifier: GlanceModifier = GlanceModifier,
-    onClick: androidx.glance.action.Action = actionRunCallback<LaunchPlayerActionCallback>()
+    onClick: Action = actionRunCallback<LaunchPlayerActionCallback>()
 ) {
     val sizePx = (sizeDp.value * density).toInt().coerceAtLeast(32)
     val artBitmap = remember(artwork, progress, isPlaying, ringStyle, ringColor, sizePx) {
@@ -152,13 +153,13 @@ fun WidgetControlsRow(
     playIconSize: Dp = 24.dp,
     spacing: Dp = 12.dp
 ) {
-    Row(
+    GlanceRow(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Prev button
-        Box(
+        GlanceBox(
             modifier = GlanceModifier
                 .size(buttonSize)
                 .cornerRadius(buttonSize / 2)
@@ -174,14 +175,14 @@ fun WidgetControlsRow(
             )
         }
 
-        Spacer(modifier = GlanceModifier.width(spacing))
+        GlanceSpacer(modifier = GlanceModifier.width(spacing))
 
         // Play/Pause button
         val playBgColor = Color(accentColor)
         val playIconRes = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
         val playCd = if (isPlaying) R.string.cd_pause else R.string.cd_play
 
-        Box(
+        GlanceBox(
             modifier = GlanceModifier
                 .size(playButtonSize)
                 .cornerRadius(playButtonSize / 2)
@@ -197,10 +198,10 @@ fun WidgetControlsRow(
             )
         }
 
-        Spacer(modifier = GlanceModifier.width(spacing))
+        GlanceSpacer(modifier = GlanceModifier.width(spacing))
 
         // Next button
-        Box(
+        GlanceBox(
             modifier = GlanceModifier
                 .size(buttonSize)
                 .cornerRadius(buttonSize / 2)
@@ -224,7 +225,7 @@ fun WidgetImmersiveButton(
     sizeDp: Dp = 26.dp,
     iconSizeDp: Dp = 16.dp
 ) {
-    Box(
+    GlanceBox(
         modifier = modifier
             .size(sizeDp)
             .cornerRadius(sizeDp / 2)

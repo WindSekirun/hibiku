@@ -6,8 +6,10 @@ import android.content.Intent
 import android.util.Log
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.action.ActionCallback
 import com.github.windsekirun.musicwidget.domain.repository.MediaPlaybackRepository
+import com.github.windsekirun.musicwidget.feature.data.WidgetPreferencesRepository
 
 class PlayPauseActionCallback : ActionCallback {
     override suspend fun onAction(
@@ -100,10 +102,10 @@ class ToggleMinimalOverlayActionCallback : ActionCallback {
         parameters: ActionParameters
     ) {
         val appWidgetId = runCatching {
-            androidx.glance.appwidget.GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+            GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
         }.getOrDefault(-1)
 
-        val prefs = com.github.windsekirun.musicwidget.feature.data.WidgetPreferencesRepository(context)
+        val prefs = WidgetPreferencesRepository(context)
         prefs.toggleMinimalOverlay(appWidgetId)
         WidgetUpdateHelper.updateAllWidgets(context)
     }

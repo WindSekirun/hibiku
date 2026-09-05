@@ -16,9 +16,9 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
-import androidx.glance.layout.Column
-import androidx.glance.layout.Spacer
+import androidx.glance.layout.Box as GlanceBox
+import androidx.glance.layout.Column as GlanceColumn
+import androidx.glance.layout.Spacer as GlanceSpacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -64,7 +64,7 @@ fun MusicWidget2x2StandardContent(
         accentColor = accentColor,
         density = density
     ) {
-        Box(
+        GlanceBox(
             modifier = GlanceModifier.fillMaxSize()
         ) {
             // Immersive transition button in top-right corner
@@ -73,7 +73,7 @@ fun MusicWidget2x2StandardContent(
                     .padding(top = 6.dp, end = 6.dp)
             )
 
-            Column(
+            GlanceColumn(
                 modifier = GlanceModifier
                     .fillMaxSize()
                     .padding(horizontal = 8.dp, vertical = 6.dp),
@@ -93,7 +93,7 @@ fun MusicWidget2x2StandardContent(
 
                 // Middle: Song Title only (artist omitted to prevent cramped controls)
                 if (config.textVisible) {
-                    Spacer(modifier = GlanceModifier.height(5.dp))
+                    GlanceSpacer(modifier = GlanceModifier.height(5.dp))
 
                     val titleText = playbackState.title.ifBlank {
                         context.getString(R.string.no_music_playing)
@@ -112,7 +112,7 @@ fun MusicWidget2x2StandardContent(
                     )
                 }
 
-                Spacer(modifier = GlanceModifier.height(6.dp))
+                GlanceSpacer(modifier = GlanceModifier.height(6.dp))
 
                 // Bottom: Controls row
                 WidgetControlsRow(

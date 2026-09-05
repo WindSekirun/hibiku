@@ -16,9 +16,9 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Column
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
+import androidx.glance.layout.Column as GlanceColumn
+import androidx.glance.layout.Row as GlanceRow
+import androidx.glance.layout.Spacer as GlanceSpacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
@@ -66,7 +66,7 @@ fun MusicWidget4x2Content(
         accentColor = accentColor,
         density = density
     ) {
-        Row(
+        GlanceRow(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .padding(12.dp),
@@ -83,10 +83,10 @@ fun MusicWidget4x2Content(
                 density = density
             )
 
-            Spacer(modifier = GlanceModifier.width(14.dp))
+            GlanceSpacer(modifier = GlanceModifier.width(14.dp))
 
             // Right: Song info + controls
-            Column(
+            GlanceColumn(
                 modifier = GlanceModifier
                     .fillMaxHeight()
                     .defaultWeight(),
@@ -113,7 +113,7 @@ fun MusicWidget4x2Content(
                             .clickable(actionRunCallback<LaunchPlayerActionCallback>())
                     )
 
-                    Spacer(modifier = GlanceModifier.height(2.dp))
+                    GlanceSpacer(modifier = GlanceModifier.height(2.dp))
 
                     Text(
                         text = artistText,
@@ -128,7 +128,7 @@ fun MusicWidget4x2Content(
                             .clickable(actionRunCallback<LaunchPlayerActionCallback>())
                     )
 
-                    Spacer(modifier = GlanceModifier.height(8.dp))
+                    GlanceSpacer(modifier = GlanceModifier.height(8.dp))
                 }
 
                 WidgetControlsRow(

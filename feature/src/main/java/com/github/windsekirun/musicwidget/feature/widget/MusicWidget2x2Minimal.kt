@@ -17,7 +17,7 @@ import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
+import androidx.glance.layout.Box as GlanceBox
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import androidx.glance.unit.ColorProvider
@@ -64,7 +64,7 @@ fun MusicWidget2x2MinimalContent(
         accentColor = accentColor,
         density = density
     ) {
-        Box(
+        GlanceBox(
             modifier = GlanceModifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
@@ -88,7 +88,7 @@ fun MusicWidget2x2MinimalContent(
 
             // Dimmed overlay with controls if toggled on
             if (isOverlayVisible) {
-                Box(
+                GlanceBox(
                     modifier = GlanceModifier
                         .fillMaxSize()
                         .background(ColorProvider(Color(0x99000000)))
