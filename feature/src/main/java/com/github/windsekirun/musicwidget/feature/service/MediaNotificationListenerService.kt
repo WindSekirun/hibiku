@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import com.github.windsekirun.musicwidget.domain.model.MediaPlaybackState
 import com.github.windsekirun.musicwidget.domain.repository.MediaPlaybackRepository
 import com.github.windsekirun.musicwidget.feature.receiver.ScreenStateReceiver
+import com.github.windsekirun.musicwidget.feature.widget.WidgetUpdateHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -56,7 +57,10 @@ class MediaNotificationListenerService : NotificationListenerService() {
         ticker = PlaybackTicker(
             repository = MediaPlaybackRepository,
             coroutineScope = serviceScope,
-            dispatcher = Dispatchers.Default
+            dispatcher = Dispatchers.Default,
+            onTick = {
+                WidgetUpdateHelper.updateAllWidgets(this@MediaNotificationListenerService)
+            }
         )
 
         screenReceiver = ScreenStateReceiver { isScreenOn ->
@@ -94,6 +98,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         setupActionHandler(null)
         ticker.stop()
         MediaPlaybackRepository.reset()
+        WidgetUpdateHelper.updateAllWidgets(this)
     }
 
     override fun onDestroy() {
@@ -158,6 +163,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
             setupActionHandler(null)
             ticker.stop()
             MediaPlaybackRepository.reset()
+            WidgetUpdateHelper.updateAllWidgets(this)
         }
     }
 
@@ -201,6 +207,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
         MediaPlaybackRepository.updatePlaybackState(state)
         ticker.onPlaybackStateChanged()
+        WidgetUpdateHelper.updateAllWidgets(this)
     }
 
     private fun handlePlaybackStateChanged(state: PlaybackState?) {
@@ -213,6 +220,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         )
         MediaPlaybackRepository.updatePlaybackState(updated)
         ticker.onPlaybackStateChanged()
+        WidgetUpdateHelper.updateAllWidgets(this)
     }
 
     private fun handleMetadataChanged(metadata: MediaMetadata?) {
@@ -236,11 +244,13 @@ class MediaNotificationListenerService : NotificationListenerService() {
         )
         MediaPlaybackRepository.updatePlaybackState(updated)
         ticker.onPlaybackStateChanged()
+        WidgetUpdateHelper.updateAllWidgets(this)
     }
 
     private fun handleSessionDestroyed() {
         detachActiveController()
         queryActiveSessions()
+        WidgetUpdateHelper.updateAllWidgets(this)
     }
 
     private fun setupActionHandler(controller: MediaController?) {

@@ -13,7 +13,8 @@ class PlaybackTicker(
     private val coroutineScope: CoroutineScope,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val tickIntervalMs: Long = 1_000L,
-    private val delayProvider: suspend (Long) -> Unit = { delay(it) }
+    private val delayProvider: suspend (Long) -> Unit = { delay(it) },
+    private val onTick: (() -> Unit)? = null
 ) {
     var isScreenOn: Boolean = true
         private set
@@ -27,11 +28,13 @@ class PlaybackTicker(
         if (isScreenOn != screenOn) {
             isScreenOn = screenOn
             evaluate()
+            onTick?.invoke()
         }
     }
 
     fun onPlaybackStateChanged() {
         evaluate()
+        onTick?.invoke()
     }
 
     fun stop() {
@@ -61,6 +64,7 @@ class PlaybackTicker(
                 state.positionMs + tickIntervalMs
             }
             repository.updatePosition(newPosition)
+            onTick?.invoke()
         }
     }
 
