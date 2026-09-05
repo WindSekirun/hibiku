@@ -40,10 +40,6 @@ class MusicWidgetTest {
         val receiver2x2Std = MusicWidget2x2StandardReceiver()
         assertNotNull(receiver2x2Std.glanceAppWidget)
         assertTrue(receiver2x2Std.glanceAppWidget is MusicWidget2x2Standard)
-
-        val receiver2x2Min = MusicWidget2x2MinimalReceiver()
-        assertNotNull(receiver2x2Min.glanceAppWidget)
-        assertTrue(receiver2x2Min.glanceAppWidget is MusicWidget2x2Minimal)
     }
 
     @Test

@@ -27,6 +27,7 @@ import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row as GlanceRow
 import androidx.glance.layout.Spacer as GlanceSpacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.unit.ColorProvider
@@ -68,7 +69,7 @@ fun WidgetBackground(
     accentColor: Int,
     density: Float,
     modifier: GlanceModifier = GlanceModifier.fillMaxSize(),
-    cornerRadiusDp: Dp = 16.dp,
+    cornerRadiusDp: Dp = 32.dp,
     content: @Composable () -> Unit
 ) {
     val size = LocalSize.current
@@ -82,7 +83,7 @@ fun WidgetBackground(
                 artwork = artwork,
                 widthPx = wPx,
                 heightPx = hPx,
-                dimAlpha = 0.55f,
+                dimAlpha = 0.45f,
                 cornerRadiusPx = cornerRadiusPx,
                 strokeColor = (accentColor and 0x00FFFFFF) or 0x33000000
             )
@@ -94,7 +95,8 @@ fun WidgetBackground(
     GlanceBox(
         modifier = modifier
             .cornerRadius(cornerRadiusDp)
-            .background(ColorProvider(Color(0xE61C1B1F))),
+            .background(ColorProvider(Color(0xE612141C)))
+            .clickable(actionRunCallback<LaunchPlayerActionCallback>()),
         contentAlignment = Alignment.Center
     ) {
         if (bgBitmap != null) {
@@ -105,6 +107,15 @@ fun WidgetBackground(
                 modifier = GlanceModifier.fillMaxSize().cornerRadius(cornerRadiusDp)
             )
         }
+
+        // Top-Right Expand Button (btn-expand positioned at top-right corner matching mockup)
+        GlanceBox(
+            modifier = GlanceModifier.fillMaxSize().padding(top = 14.dp, end = 14.dp),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            WidgetImmersiveButton()
+        }
+
         content()
     }
 }
@@ -148,23 +159,21 @@ fun WidgetControlsRow(
     isPlaying: Boolean,
     accentColor: Int,
     modifier: GlanceModifier = GlanceModifier,
-    buttonSize: Dp = 36.dp,
-    playButtonSize: Dp = 42.dp,
+    buttonSize: Dp = 32.dp,
+    playButtonSize: Dp = 44.dp,
     iconSize: Dp = 20.dp,
-    playIconSize: Dp = 24.dp,
-    spacing: Dp = 12.dp
+    playIconSize: Dp = 22.dp,
+    spacing: Dp = 14.dp
 ) {
     GlanceRow(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Prev button
+        // Prev button (clean icon button matching mockup)
         GlanceBox(
             modifier = GlanceModifier
                 .size(buttonSize)
-                .cornerRadius(buttonSize / 2)
-                .background(ColorProvider(Color(0x33FFFFFF)))
                 .clickable(actionRunCallback<PrevActionCallback>()),
             contentAlignment = Alignment.Center
         ) {
@@ -178,8 +187,7 @@ fun WidgetControlsRow(
 
         GlanceSpacer(modifier = GlanceModifier.width(spacing))
 
-        // Play/Pause button
-        val playBgColor = Color(accentColor)
+        // Play/Pause button (solid white circle + dark icon matching mockup)
         val playIconRes = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
         val playCd = if (isPlaying) R.string.cd_pause else R.string.cd_play
 
@@ -187,7 +195,7 @@ fun WidgetControlsRow(
             modifier = GlanceModifier
                 .size(playButtonSize)
                 .cornerRadius(playButtonSize / 2)
-                .background(ColorProvider(playBgColor))
+                .background(ColorProvider(Color.White))
                 .clickable(actionRunCallback<PlayPauseActionCallback>()),
             contentAlignment = Alignment.Center
         ) {
@@ -195,18 +203,16 @@ fun WidgetControlsRow(
                 provider = ImageProvider(playIconRes),
                 contentDescription = LocalContext.current.getString(playCd),
                 modifier = GlanceModifier.size(playIconSize),
-                colorFilter = ColorFilter.tint(ColorProvider(Color.White))
+                colorFilter = ColorFilter.tint(ColorProvider(Color(0xFF11111B)))
             )
         }
 
         GlanceSpacer(modifier = GlanceModifier.width(spacing))
 
-        // Next button
+        // Next button (clean icon button matching mockup)
         GlanceBox(
             modifier = GlanceModifier
                 .size(buttonSize)
-                .cornerRadius(buttonSize / 2)
-                .background(ColorProvider(Color(0x33FFFFFF)))
                 .clickable(actionRunCallback<NextActionCallback>()),
             contentAlignment = Alignment.Center
         ) {
@@ -223,8 +229,8 @@ fun WidgetControlsRow(
 @Composable
 fun WidgetImmersiveButton(
     modifier: GlanceModifier = GlanceModifier,
-    sizeDp: Dp = 26.dp,
-    iconSizeDp: Dp = 16.dp
+    sizeDp: Dp = 28.dp,
+    iconSizeDp: Dp = 14.dp
 ) {
     GlanceBox(
         modifier = modifier
@@ -242,4 +248,5 @@ fun WidgetImmersiveButton(
         )
     }
 }
+
 

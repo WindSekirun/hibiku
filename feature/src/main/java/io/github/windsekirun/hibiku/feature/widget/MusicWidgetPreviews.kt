@@ -37,8 +37,8 @@ fun MusicWidget4x2Preview() {
         modifier = Modifier
             .width(320.dp)
             .height(130.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = Color(0xE61C1B1F)
+        shape = RoundedCornerShape(32.dp),
+        color = Color(0xE612141C)
     ) {
         Row(
             modifier = Modifier
@@ -70,68 +70,63 @@ fun MusicWidget4x2Preview() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
+                    text = "SHIRAKAMI FUBUKI",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xB3FFFFFF),
+                    maxLines = 1
+                )
+                Text(
                     text = "SUPERNOVA",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     maxLines = 1
                 )
-                Text(
-                    text = "Shirakami Fubuki",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xCCFFFFFF),
-                    maxLines = 1
-                )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        modifier = Modifier.size(32.dp),
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.2f)
+                    Box(
+                        modifier = Modifier.size(28.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_widget_prev),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(R.drawable.ic_widget_prev),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
 
                     Surface(
                         modifier = Modifier.size(38.dp),
                         shape = CircleShape,
-                        color = Color(0xFF5CB3FF)
+                        color = Color.White
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_widget_pause),
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = Color(0xFF11111B),
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                     }
 
-                    Surface(
-                        modifier = Modifier.size(32.dp),
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.2f)
+                    Box(
+                        modifier = Modifier.size(28.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_widget_next),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(R.drawable.ic_widget_next),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
@@ -144,13 +139,13 @@ fun MusicWidget4x2Preview() {
 fun MusicWidget2x2StandardPreview() {
     Surface(
         modifier = Modifier.size(160.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xE61C1B1F)
+        shape = RoundedCornerShape(32.dp),
+        color = Color(0xE612141C)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Surface(
                 modifier = Modifier
-                    .padding(6.dp)
+                    .padding(8.dp)
                     .align(Alignment.TopEnd)
                     .size(24.dp),
                 shape = CircleShape,
@@ -188,7 +183,7 @@ fun MusicWidget2x2StandardPreview() {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = "SUPERNOVA",
@@ -198,55 +193,57 @@ fun MusicWidget2x2StandardPreview() {
                     maxLines = 1
                 )
 
+                Text(
+                    text = "Shirakami Fubuki",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xB3FFFFFF),
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
+
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        modifier = Modifier.size(28.dp),
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.2f)
+                    Box(
+                        modifier = Modifier.size(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_widget_prev),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(R.drawable.ic_widget_prev),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
                     }
 
                     Surface(
-                        modifier = Modifier.size(34.dp),
+                        modifier = Modifier.size(32.dp),
                         shape = CircleShape,
-                        color = Color(0xFF5CB3FF)
+                        color = Color.White
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_widget_pause),
                                 contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
+                                tint = Color(0xFF11111B),
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
 
-                    Surface(
-                        modifier = Modifier.size(28.dp),
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.2f)
+                    Box(
+                        modifier = Modifier.size(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_widget_next),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(R.drawable.ic_widget_next),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
                     }
                 }
             }
@@ -254,123 +251,7 @@ fun MusicWidget2x2StandardPreview() {
     }
 }
 
-@Preview(name = "2x2 Minimal Widget Preview - Normal", showBackground = true, backgroundColor = 0xFF121212)
-@Composable
-fun MusicWidget2x2MinimalPreviewNormal() {
-    MusicWidget2x2MinimalPreviewCommon(showOverlay = false)
-}
 
-@Preview(name = "2x2 Minimal Widget Preview - Dimmed Overlay", showBackground = true, backgroundColor = 0xFF121212)
-@Composable
-fun MusicWidget2x2MinimalPreviewOverlay() {
-    MusicWidget2x2MinimalPreviewCommon(showOverlay = true)
-}
-
-@Composable
-private fun MusicWidget2x2MinimalPreviewCommon(showOverlay: Boolean) {
-    Surface(
-        modifier = Modifier.size(160.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xE61C1B1F)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Surface(
-                modifier = Modifier
-                    .padding(6.dp)
-                    .align(Alignment.TopEnd)
-                    .size(24.dp),
-                shape = CircleShape,
-                color = Color.White.copy(alpha = 0.2f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_widget_immersive),
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(114.dp)
-                    .background(Color(0xFF2A2A2A), CircleShape)
-                    .border(3.5.dp, Color(0xFF5CB3FF), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "SUPERNOVA",
-                    color = Color(0xFF5CB3FF),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp
-                )
-            }
-
-            if (showOverlay) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xB3000000), RoundedCornerShape(16.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            modifier = Modifier.size(32.dp),
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.25f)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_widget_prev),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-
-                        Surface(
-                            modifier = Modifier.size(40.dp),
-                            shape = CircleShape,
-                            color = Color(0xFF5CB3FF)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_widget_pause),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-
-                        Surface(
-                            modifier = Modifier.size(32.dp),
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.25f)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_widget_next),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Preview(name = "2x2 Pure Widget Preview - Transparent Background", showBackground = true, backgroundColor = 0xFF222222)
 @Composable

@@ -13,11 +13,16 @@ data class MediaPlaybackState(
     val packageName: String? = null,
     val sessionActivity: PendingIntent? = null,
     val isShuffleEnabled: Boolean = false,
-    val repeatMode: Int = 0 // 0: OFF, 1: ALL, 2: ONE
+    val repeatMode: Int = 0, // 0: OFF, 1: ALL, 2: ONE
+    val queueIndex: Int = 1,
+    val queueSize: Int = 1
 ) {
     val isRepeatEnabled: Boolean
         get() = repeatMode != 0
 
     val progress: Float
         get() = if (durationMs > 0L) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
+
+    val queueText: String
+        get() = if (queueSize > 1) "Queue $queueIndex/$queueSize" else if (queueIndex > 1) "Queue $queueIndex" else "Queue 1/1"
 }

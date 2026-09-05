@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import io.github.windsekirun.hibiku.domain.model.M3ShapeStyle
 import io.github.windsekirun.hibiku.domain.model.RingStyle
 import io.github.windsekirun.hibiku.domain.model.WidgetConfig
+import io.github.windsekirun.hibiku.feature.ui.immersive.ImmersiveShapeStyle
 
 /**
  * Repository responsible for persisting and retrieving per-widget configurations.
@@ -96,6 +97,7 @@ class WidgetPreferencesRepository(
 
     companion object {
         const val PREFS_NAME = "music_widget_preferences"
+        const val KEY_IMMERSIVE_SHAPE = "immersive_shape_style"
 
         private val keyRegex = Regex("""^widget_(-?\d+)_.+""")
 
@@ -122,5 +124,19 @@ class WidgetPreferencesRepository(
         val next = !isMinimalOverlayVisible(appWidgetId)
         setMinimalOverlayVisible(appWidgetId, next)
         return next
+    }
+
+    /**
+     * Saves and retrieves global Immersive Player shape style selection.
+     */
+    fun saveImmersiveShape(style: ImmersiveShapeStyle) {
+        preferences.edit().putString(KEY_IMMERSIVE_SHAPE, style.name).apply()
+    }
+
+    fun getImmersiveShape(): ImmersiveShapeStyle {
+        val name = preferences.getString(KEY_IMMERSIVE_SHAPE, null)
+        return name?.let {
+            runCatching { ImmersiveShapeStyle.valueOf(it) }.getOrNull()
+        } ?: ImmersiveShapeStyle.SCALLOP
     }
 }

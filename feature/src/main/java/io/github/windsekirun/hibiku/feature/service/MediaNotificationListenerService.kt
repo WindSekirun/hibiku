@@ -197,6 +197,26 @@ class MediaNotificationListenerService : NotificationListenerService() {
         val isShuffleEnabled = playbackState?.extras?.getBoolean("SHUFFLE_ENABLED") ?: false
         val repeatMode = playbackState?.extras?.getInt("REPEAT_MODE") ?: 0
 
+        val queue = runCatching { controller.queue }.getOrNull()
+        val activeQueueId = playbackState?.activeQueueItemId
+        val trackNumber = metadata?.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER)?.toInt() ?: 0
+        val numTracks = metadata?.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS)?.toInt() ?: 0
+
+        val queueSize = when {
+            !queue.isNullOrEmpty() -> queue.size
+            numTracks > 0 -> numTracks
+            else -> 1
+        }
+
+        val queueIndex = when {
+            !queue.isNullOrEmpty() && activeQueueId != null -> {
+                val idx = queue.indexOfFirst { it.queueId == activeQueueId }
+                if (idx >= 0) idx + 1 else 1
+            }
+            trackNumber > 0 -> trackNumber
+            else -> 1
+        }
+
         val state = MediaPlaybackState(
             isPlaying = isPlaying,
             title = title,
@@ -207,7 +227,9 @@ class MediaNotificationListenerService : NotificationListenerService() {
             packageName = controller.packageName,
             sessionActivity = controller.sessionActivity,
             isShuffleEnabled = isShuffleEnabled,
-            repeatMode = repeatMode
+            repeatMode = repeatMode,
+            queueIndex = queueIndex,
+            queueSize = queueSize
         )
 
         MediaPlaybackRepository.updatePlaybackState(state)

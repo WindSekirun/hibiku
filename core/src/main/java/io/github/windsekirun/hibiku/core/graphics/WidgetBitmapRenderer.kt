@@ -179,36 +179,51 @@ object WidgetBitmapRenderer {
             }
 
             RingStyle.SQUIGGLY_WAVE -> {
-                canvas.drawCircle(cx, cy, ringRadius, trackPaint)
-
-                if (sweepAngle > 0f) {
-                    if (!isPlaying) {
-                        canvas.drawArc(ringBounds, startAngle, sweepAngle, false, ringPaint)
-                    } else {
-                        val wavePath = Path()
-                        val steps = maxOf(4, (sweepAngle * 2).toInt())
-                        val angleStep = sweepAngle / steps
-                        val amplitude = ringStrokeWidth * 0.35f
-                        val waveCount = 12
-
-                        for (i in 0..steps) {
-                            val angleDeg = startAngle + i * angleStep
-                            val angleRad = Math.toRadians(angleDeg.toDouble())
-                            val radialOffset = RingMathHelper.calculateSquigglyRadialOffset(
-                                angleRad = angleRad,
-                                waveCount = waveCount,
-                                amplitude = amplitude
-                            )
-                            val r = ringRadius + radialOffset
-                            val (x, y) = RingMathHelper.calculateThumbPosition(cx, cy, r, angleDeg)
-                            if (i == 0) {
-                                wavePath.moveTo(x, y)
-                            } else {
-                                wavePath.lineTo(x, y)
-                            }
-                        }
-                        canvas.drawPath(wavePath, ringPaint)
+                if (sweepAngle <= 0f) {
+                    // 진행 없음 → 전체 회색 트랙만
+                    canvas.drawCircle(cx, cy, ringRadius, trackPaint)
+                } else if (!isPlaying) {
+                    // 일시정지 → 회색 트랙 전체 + 일반 arc
+                    canvas.drawCircle(cx, cy, ringRadius, trackPaint)
+                    canvas.drawArc(ringBounds, startAngle, sweepAngle, false, ringPaint)
+                } else {
+                    // 재생 중 → 웨이브 구간에는 회색 트랙 제외
+                    // 남은 구간(sweepAngle 끝 ~ 360°)만 회색 트랙으로 그림
+                    val remainAngle = 360f - sweepAngle
+                    if (remainAngle > 0f) {
+                        canvas.drawArc(
+                            ringBounds,
+                            startAngle + sweepAngle,  // 웨이브 끝 지점부터
+                            remainAngle,
+                            false,
+                            trackPaint
+                        )
                     }
+
+                    // 웨이브 경로 그리기
+                    val wavePath = Path()
+                    val steps = maxOf(4, (sweepAngle * 2).toInt())
+                    val angleStep = sweepAngle / steps
+                    val amplitude = ringStrokeWidth * 0.35f
+                    val waveCount = 12
+
+                    for (i in 0..steps) {
+                        val angleDeg = startAngle + i * angleStep
+                        val angleRad = Math.toRadians(angleDeg.toDouble())
+                        val radialOffset = RingMathHelper.calculateSquigglyRadialOffset(
+                            angleRad = angleRad,
+                            waveCount = waveCount,
+                            amplitude = amplitude
+                        )
+                        val r = ringRadius + radialOffset
+                        val (x, y) = RingMathHelper.calculateThumbPosition(cx, cy, r, angleDeg)
+                        if (i == 0) {
+                            wavePath.moveTo(x, y)
+                        } else {
+                            wavePath.lineTo(x, y)
+                        }
+                    }
+                    canvas.drawPath(wavePath, ringPaint)
                 }
             }
         }
@@ -274,30 +289,15 @@ object WidgetBitmapRenderer {
             scaledBitmap.recycle()
         }
 
-        // Clip to rounded rect and draw blurred image + dim layer
-        val saveCount = canvas.saveLayer(bounds, null)
-
-        val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.BLACK
-            style = Paint.Style.FILL
-        }
-        val roundPath = Path().apply {
-            addRoundRect(bounds, cornerRadiusPx, cornerRadiusPx, Path.Direction.CW)
-        }
-        canvas.drawPath(roundPath, maskPaint)
-
-        val blurPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-        }
+        // Draw blurred image + dim layer over rectangular bounds (Glance handles cornerRadius clipping natively)
+        val blurPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
         canvas.drawBitmap(blurredBitmap, null, bounds, blurPaint)
 
         val dimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb((dimAlpha.coerceIn(0f, 1f) * 255).toInt(), 0, 0, 0)
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
         }
         canvas.drawRect(bounds, dimPaint)
 
-        canvas.restoreToCount(saveCount)
         blurredBitmap.recycle()
 
         // Stroke border if needed
@@ -308,7 +308,7 @@ object WidgetBitmapRenderer {
                 strokeWidth = 2f
             }
             val strokeBounds = RectF(1f, 1f, w - 1f, h - 1f)
-            canvas.drawRoundRect(strokeBounds, cornerRadiusPx, cornerRadiusPx, strokePaint)
+            canvas.drawRect(strokeBounds, strokePaint)
         }
 
         return output

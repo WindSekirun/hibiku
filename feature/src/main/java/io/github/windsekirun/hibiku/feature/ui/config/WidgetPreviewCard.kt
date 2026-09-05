@@ -84,7 +84,10 @@ fun WidgetPreviewCard(
     }
 
     val density = LocalDensity.current.density
-    val ringSizePx = (80 * density).toInt().coerceAtLeast(64)
+    // 실제 위젯 4x2: 최소 높이 110dp, 앨범아트 120dp
+    // 설정 카드 높이 150dp 기준으로 비율 환산: 120 * (150/110) ≈ 106dp → padding 제외하면 106dp 적절
+    val artworkSizeDp = 106.dp
+    val ringSizePx = (artworkSizeDp.value * density).toInt().coerceAtLeast(64)
 
     // Render artwork ring bitmap
     val ringBitmap = remember(
@@ -124,9 +127,9 @@ fun WidgetPreviewCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xE61C1B1F)
+            containerColor = Color(0xE612141C)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -152,25 +155,25 @@ fun WidgetPreviewCard(
                     .border(
                         width = 1.dp,
                         color = Color((accentColorInt and 0x00FFFFFF) or 0x44000000),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = RoundedCornerShape(32.dp)
                     )
             )
 
-            // Content row (4x2 widget preview representation)
+            // Content row (4x2 widget preview - 실제 위젯과 동일한 패딩/크기 적용)
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Circular artwork with progress ring
                 Image(
                     bitmap = ringBitmap.asImageBitmap(),
                     contentDescription = stringResource(R.string.cd_album_art),
-                    modifier = Modifier.size(80.dp)
+                    modifier = Modifier.size(artworkSizeDp)
                 )
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(14.dp))
 
                 // Information and Controls Column
                 Column(
@@ -179,6 +182,15 @@ fun WidgetPreviewCard(
                 ) {
                     if (widgetConfig.textVisible) {
                         Text(
+                            text = effectiveArtist.uppercase(),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xB3FFFFFF),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
                             text = effectiveTitle,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
@@ -186,43 +198,32 @@ fun WidgetPreviewCard(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = effectiveArtist,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xBBFFFFFF),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
                         Spacer(modifier = Modifier.height(10.dp))
                     }
 
-                    // Mock controls row
+                    // Mock controls row matching mockup
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         // Previous button
-                        Surface(
-                            shape = CircleShape,
-                            color = Color(0x33FFFFFF),
-                            modifier = Modifier.size(34.dp)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_widget_prev),
-                                    contentDescription = stringResource(R.string.cd_previous),
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                            Icon(
+                                painter = painterResource(R.drawable.ic_widget_prev),
+                                contentDescription = stringResource(R.string.cd_previous),
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
 
-                        // Play / Pause button
+                        // Play / Pause button (solid white circle + dark icon)
                         Surface(
                             shape = CircleShape,
-                            color = Color(accentColorInt),
-                            modifier = Modifier.size(40.dp)
+                            color = Color.White,
+                            modifier = Modifier.size(42.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 val playIconRes = if (effectiveIsPlaying) {
@@ -235,26 +236,23 @@ fun WidgetPreviewCard(
                                     contentDescription = stringResource(
                                         if (effectiveIsPlaying) R.string.cd_pause else R.string.cd_play
                                     ),
-                                    tint = Color.White,
+                                    tint = Color(0xFF11111B),
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
 
                         // Next button
-                        Surface(
-                            shape = CircleShape,
-                            color = Color(0x33FFFFFF),
-                            modifier = Modifier.size(34.dp)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_widget_next),
-                                    contentDescription = stringResource(R.string.cd_next),
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                            Icon(
+                                painter = painterResource(R.drawable.ic_widget_next),
+                                contentDescription = stringResource(R.string.cd_next),
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     }
                 }
@@ -262,7 +260,7 @@ fun WidgetPreviewCard(
 
             // "Live" or "Sample" status badge in top-right corner
             Surface(
-                shape = RoundedCornerShape(topEnd = 24.dp, bottomStart = 8.dp),
+                shape = RoundedCornerShape(topEnd = 32.dp, bottomStart = 8.dp),
                 color = if (hasLiveTrack) Color(0x9910B981) else Color(0x66000000),
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {

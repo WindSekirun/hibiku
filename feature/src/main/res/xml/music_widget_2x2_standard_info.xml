@@ -11,4 +11,5 @@
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen"
+    android:widgetFeatures="reconfigurable|configuration_optional"
     android:configure="io.github.windsekirun.hibiku.feature.ui.config.WidgetConfigurationActivity" />

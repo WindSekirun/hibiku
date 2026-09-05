@@ -6,10 +6,8 @@ import android.content.Intent
 import android.util.Log
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.action.ActionCallback
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
-import io.github.windsekirun.hibiku.feature.data.WidgetPreferencesRepository
 
 class PlayPauseActionCallback : ActionCallback {
     override suspend fun onAction(
@@ -51,6 +49,8 @@ class LaunchPlayerActionCallback : ActionCallback {
         parameters: ActionParameters
     ) {
         val state = MediaPlaybackRepository.playbackState.value
+
+        // 1순위: sessionActivity (MediaSession이 제공하는 PendingIntent)
         val sessionActivity = state.sessionActivity
         if (sessionActivity != null) {
             try {
@@ -61,12 +61,27 @@ class LaunchPlayerActionCallback : ActionCallback {
             }
         }
 
-        try {
-            val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                ?: Intent().apply {
-                    component = ComponentName(context.packageName, "io.github.windsekirun.hibiku.MainActivity")
+        // 2순위: 현재 재생 중인 앱 패키지로 직접 런치 (YouTube Music 등 대응)
+        val musicPackage = state.packageName
+        if (!musicPackage.isNullOrBlank()) {
+            try {
+                val launchIntent = context.packageManager.getLaunchIntentForPackage(musicPackage)
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(launchIntent)
+                    return
                 }
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            } catch (e: Exception) {
+                Log.e("WidgetActions", "Failed to launch music app: $musicPackage", e)
+            }
+        }
+
+        // 3순위: 자기 앱 MainActivity fallback
+        try {
+            val launchIntent = Intent().apply {
+                component = ComponentName(context.packageName, "io.github.windsekirun.hibiku.MainActivity")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             context.startActivity(launchIntent)
         } catch (e: Exception) {
             Log.e("WidgetActions", "Failed to launch main activity", e)
@@ -95,18 +110,3 @@ class LaunchImmersiveActionCallback : ActionCallback {
     }
 }
 
-class ToggleMinimalOverlayActionCallback : ActionCallback {
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters
-    ) {
-        val appWidgetId = runCatching {
-            GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-        }.getOrDefault(-1)
-
-        val prefs = WidgetPreferencesRepository(context)
-        prefs.toggleMinimalOverlay(appWidgetId)
-        WidgetUpdateHelper.updateAllWidgets(context)
-    }
-}

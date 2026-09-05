@@ -1,13 +1,20 @@
 package io.github.windsekirun.hibiku.feature.ui.immersive
 
+import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -31,14 +38,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -49,7 +60,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,6 +73,7 @@ import io.github.windsekirun.hibiku.core.graphics.PaletteExtractor
 import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
 import io.github.windsekirun.hibiku.feature.R
+import io.github.windsekirun.hibiku.feature.data.WidgetPreferencesRepository
 
 class ImmersivePlayerActivity : ComponentActivity() {
 
@@ -92,6 +106,33 @@ class ImmersivePlayerActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SinglePassMarqueeText(
+    text: String,
+    style: TextStyle,
+    color: Color,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null
+) {
+    key(text) {
+        Text(
+            text = text,
+            style = style,
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            textAlign = textAlign,
+            modifier = modifier.basicMarquee(
+                iterations = 1,
+                repeatDelayMillis = 1000,
+                initialDelayMillis = 800
+            )
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImmersivePlayerScreen(
     playbackState: MediaPlaybackState,
@@ -106,13 +147,19 @@ fun ImmersivePlayerScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    val context = LocalContext.current
+    val repository = remember(context) { WidgetPreferencesRepository(context) }
+
     val defaultAccent = 0xFF5CB3FF.toInt()
     val accentColorInt = remember(playbackState.albumArt) {
         PaletteExtractor.extractAccentColor(playbackState.albumArt, defaultAccent)
     }
     val accentColor = Color(accentColorInt)
 
-    var currentShape by rememberSaveable { mutableStateOf(ImmersiveShapeStyle.SCALLOP) }
+    var currentShape by rememberSaveable { mutableStateOf(repository.getImmersiveShape()) }
+    var isShapeBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var isAudioBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var isQueueBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     val darkBackground = Color(0xFF0B0C0E)
     val safePadding = WindowInsets.safeDrawing.asPaddingValues()
@@ -123,7 +170,7 @@ fun ImmersivePlayerScreen(
             .background(darkBackground)
             .padding(safePadding)
     ) {
-        // Top action bar with Close button and Shape style chips
+        // Top action bar with Close button and 3-dots MoreVert Menu button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -145,34 +192,81 @@ fun ImmersivePlayerScreen(
                 )
             }
 
-            // Shape Selector Chips
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // 3-Dots More Menu Button (opens BottomSheet for shape selection)
+            IconButton(
+                onClick = { isShapeBottomSheetOpen = true },
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.1f))
             ) {
-                ImmersiveShapeStyle.entries.forEach { style ->
-                    val isSelected = style == currentShape
-                    val chipBg = if (isSelected) accentColor else Color.White.copy(alpha = 0.1f)
-                    val textColor = if (isSelected) Color(0xFF0B0C0E) else Color.White
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More Options",
+                    tint = Color.White
+                )
+            }
+        }
 
-                    Box(
+        // Modal Bottom Sheet for Shape Selection
+        if (isShapeBottomSheetOpen) {
+            ModalBottomSheet(
+                onDismissRequest = { isShapeBottomSheetOpen = false },
+                containerColor = Color(0xFF16181D),
+                scrimColor = Color.Black.copy(alpha = 0.6f)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "앨범아트 모양 설정",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    Row(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(chipBg)
-                            .clickable { currentShape = style }
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = style.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = textColor
-                        )
+                        ImmersiveShapeStyle.entries.forEach { style ->
+                            ShapePreviewCard(
+                                style = style,
+                                isSelected = style == currentShape,
+                                accentColor = accentColor,
+                                bitmap = playbackState.albumArt,
+                                onClick = {
+                                    currentShape = style
+                                    repository.saveImmersiveShape(style)
+                                    isShapeBottomSheetOpen = false
+                                }
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        // Modal Bottom Sheet for Audio Output Device Switcher
+        if (isAudioBottomSheetOpen) {
+            AudioOutputBottomSheet(
+                accentColor = accentColor,
+                onDismiss = { isAudioBottomSheetOpen = false }
+            )
+        }
+
+        // Modal Bottom Sheet for Playback Queue Info
+        if (isQueueBottomSheetOpen) {
+            QueueBottomSheet(
+                playbackState = playbackState,
+                accentColor = accentColor,
+                onDismiss = { isQueueBottomSheetOpen = false }
+            )
         }
 
         // Responsive Body
@@ -191,7 +285,9 @@ fun ImmersivePlayerScreen(
                     onSkipNext = onSkipNext,
                     onSeek = onSeek,
                     onToggleShuffle = onToggleShuffle,
-                    onToggleRepeat = onToggleRepeat
+                    onToggleRepeat = onToggleRepeat,
+                    onOpenAudioOutput = { isAudioBottomSheetOpen = true },
+                    onOpenQueue = { isQueueBottomSheetOpen = true }
                 )
             } else {
                 PortraitImmersiveLayout(
@@ -203,7 +299,9 @@ fun ImmersivePlayerScreen(
                     onSkipNext = onSkipNext,
                     onSeek = onSeek,
                     onToggleShuffle = onToggleShuffle,
-                    onToggleRepeat = onToggleRepeat
+                    onToggleRepeat = onToggleRepeat,
+                    onOpenAudioOutput = { isAudioBottomSheetOpen = true },
+                    onOpenQueue = { isQueueBottomSheetOpen = true }
                 )
             }
         }
@@ -220,7 +318,9 @@ fun LandscapeImmersiveLayout(
     onSkipNext: () -> Unit,
     onSeek: (Long) -> Unit,
     onToggleShuffle: () -> Unit = {},
-    onToggleRepeat: () -> Unit = {}
+    onToggleRepeat: () -> Unit = {},
+    onOpenAudioOutput: () -> Unit = {},
+    onOpenQueue: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -239,7 +339,7 @@ fun LandscapeImmersiveLayout(
             // Ambient radial glow behind album art
             Box(
                 modifier = Modifier
-                    .size(340.dp)
+                    .size(420.dp)
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
@@ -254,7 +354,7 @@ fun LandscapeImmersiveLayout(
             ArtisticAlbumArt(
                 bitmap = playbackState.albumArt,
                 shape = currentShape,
-                modifier = Modifier.size(280.dp),
+                modifier = Modifier.size(350.dp),
                 glowColor = accentColor,
                 contentDescription = playbackState.title.ifEmpty { "Album Artwork" }
             )
@@ -268,15 +368,13 @@ fun LandscapeImmersiveLayout(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            Text(
+            SinglePassMarqueeText(
                 text = playbackState.title.ifEmpty { "No Media Playing" },
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp
                 ),
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                color = Color.White
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -301,7 +399,7 @@ fun LandscapeImmersiveLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat - OutputChip
+            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
@@ -359,11 +457,30 @@ fun LandscapeImmersiveLayout(
                     accentColor = accentColor,
                     onClick = onToggleRepeat
                 )
+            }
 
-                Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(18.dp))
 
-                // Output chip
-                AudioOutputChip(packageName = playbackState.packageName, accentColor = accentColor)
+            // Bottom 3-part Row: [Audio Output Icon] --- [App Session Chip] --- [Queue Icon]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AudioOutputIconButton(
+                    accentColor = accentColor,
+                    onClick = onOpenAudioOutput
+                )
+
+                AppSessionChip(
+                    packageName = playbackState.packageName,
+                    accentColor = accentColor
+                )
+
+                QueueIconButton(
+                    accentColor = accentColor,
+                    onClick = onOpenQueue
+                )
             }
         }
     }
@@ -379,7 +496,9 @@ fun PortraitImmersiveLayout(
     onSkipNext: () -> Unit,
     onSeek: (Long) -> Unit,
     onToggleShuffle: () -> Unit = {},
-    onToggleRepeat: () -> Unit = {}
+    onToggleRepeat: () -> Unit = {},
+    onOpenAudioOutput: () -> Unit = {},
+    onOpenQueue: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -398,7 +517,7 @@ fun PortraitImmersiveLayout(
             // Ambient glow
             Box(
                 modifier = Modifier
-                    .size(320.dp)
+                    .size(360.dp)
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
@@ -413,7 +532,7 @@ fun PortraitImmersiveLayout(
             ArtisticAlbumArt(
                 bitmap = playbackState.albumArt,
                 shape = currentShape,
-                modifier = Modifier.size(260.dp),
+                modifier = Modifier.size(310.dp),
                 glowColor = accentColor,
                 contentDescription = playbackState.title.ifEmpty { "Album Artwork" }
             )
@@ -427,16 +546,14 @@ fun PortraitImmersiveLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
         ) {
-            Text(
+            SinglePassMarqueeText(
                 text = playbackState.title.ifEmpty { "No Media Playing" },
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 26.sp
                 ),
                 color = Color.White,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -522,7 +639,27 @@ fun PortraitImmersiveLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            AudioOutputChip(packageName = playbackState.packageName, accentColor = accentColor)
+            // Bottom 3-part Row: [Audio Output Icon] --- [App Session Chip] --- [Queue Icon]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AudioOutputIconButton(
+                    accentColor = accentColor,
+                    onClick = onOpenAudioOutput
+                )
+
+                AppSessionChip(
+                    packageName = playbackState.packageName,
+                    accentColor = accentColor
+                )
+
+                QueueIconButton(
+                    accentColor = accentColor,
+                    onClick = onOpenQueue
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -564,17 +701,56 @@ fun PlaybackModeToggleButton(
 }
 
 @Composable
-fun AudioOutputChip(
+fun AudioOutputIconButton(
+    accentColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(42.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.08f))
+            .border(1.dp, accentColor.copy(alpha = 0.35f), CircleShape)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_widget_immersive),
+            contentDescription = "Audio Output Switcher",
+            tint = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@Composable
+fun AppSessionChip(
     packageName: String?,
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
-    val displayText = when {
-        packageName.isNullOrBlank() -> "Phone Speaker"
-        packageName.contains("spotify", ignoreCase = true) -> "Spotify"
-        packageName.contains("youtube", ignoreCase = true) -> "YouTube Music"
-        packageName.contains("apple", ignoreCase = true) -> "Apple Music"
-        else -> packageName.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+    val context = LocalContext.current
+    val appName = remember(packageName) {
+        if (packageName.isNullOrBlank()) {
+            "Music Player"
+        } else when {
+            packageName.contains("spotify", ignoreCase = true) -> "Spotify"
+            packageName.contains("youtube", ignoreCase = true) -> "YouTube Music"
+            packageName.contains("apple", ignoreCase = true) -> "Apple Music"
+            else -> packageName.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+        }
+    }
+
+    val onClickApp = remember(packageName, context) {
+        {
+            if (!packageName.isNullOrBlank()) {
+                val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    runCatching { context.startActivity(launchIntent) }
+                }
+            }
+        }
     }
 
     Row(
@@ -582,8 +758,9 @@ fun AudioOutputChip(
             .clip(RoundedCornerShape(12.dp))
             .background(Color.White.copy(alpha = 0.08f))
             .border(1.dp, accentColor.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            .clickable(enabled = !packageName.isNullOrBlank(), onClick = onClickApp)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -593,11 +770,194 @@ fun AudioOutputChip(
                 .background(accentColor)
         )
         Text(
-            text = displayText,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.85f),
-            fontWeight = FontWeight.Medium
+            text = appName,
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Composable
+fun QueueIconButton(
+    accentColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(42.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.08f))
+            .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_widget_next),
+            contentDescription = "Playback Queue",
+            tint = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AudioOutputBottomSheet(
+    accentColor: Color,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val audioManager = remember(context) { context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager }
+    val connectedDevices = remember(audioManager) {
+        val outputs = audioManager?.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        outputs?.mapNotNull { dev ->
+            val name = dev.productName.toString()
+            if (name.isNotBlank()) name else null
+        }?.distinct() ?: listOf("Phone Speaker")
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF16181D),
+        scrimColor = Color.Black.copy(alpha = 0.6f)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "오디오 출력 장치 선택",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                connectedDevices.forEach { devName ->
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color.White.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent("com.android.settings.panel.action.MEDIA_OUTPUT").apply {
+                                    putExtra("com.android.settings.panel.extra.PACKAGE_NAME", context.packageName)
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                }
+                                runCatching { context.startActivity(intent) }
+                                onDismiss()
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(CircleShape)
+                                    .background(accentColor)
+                            )
+                            Text(
+                                text = devName,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QueueBottomSheet(
+    playbackState: MediaPlaybackState,
+    accentColor: Color,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF16181D),
+        scrimColor = Color.Black.copy(alpha = 0.6f)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "재생 큐 목록",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                Text(
+                    text = playbackState.queueText,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor
+                )
+            }
+
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(accentColor)
+                    )
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = playbackState.title.ifEmpty { "No Media Playing" },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = playbackState.artist.ifEmpty { "StandBy Mode" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    Text(
+                        text = "NOW PLAYING",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
+                }
+            }
+        }
     }
 }
 
