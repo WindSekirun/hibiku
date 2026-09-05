@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -51,7 +52,7 @@ fun resolveWidgetConfigAndColor(
     val config = prefs.loadConfig(appWidgetId)
 
     val defaultColor = runCatching {
-        AndroidColor.parseColor(config.borderColorHex)
+        config.borderColorHex.toColorInt()
     }.getOrDefault(AndroidColor.WHITE)
 
     val accentColor = if (config.useDynamicColor) {
@@ -89,7 +90,7 @@ fun WidgetBackground(
                 strokeColor = 0
             )
         } else {
-            null
+            Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
         }
     }
 
@@ -99,14 +100,12 @@ fun WidgetBackground(
             .background(ColorProvider(Color(0xE612141C))),
         contentAlignment = Alignment.Center
     ) {
-        if (bgBitmap != null) {
-            Image(
-                provider = ImageProvider(bgBitmap),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = GlanceModifier.fillMaxSize().cornerRadius(cornerRadiusDp)
-            )
-        }
+        Image(
+            provider = ImageProvider(bgBitmap),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = GlanceModifier.fillMaxSize().cornerRadius(cornerRadiusDp)
+        )
 
         // Top-Right Expand Button (btn-expand positioned at top-right corner matching mockup)
         GlanceBox(

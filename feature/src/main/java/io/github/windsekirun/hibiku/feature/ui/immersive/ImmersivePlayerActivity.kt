@@ -1,16 +1,16 @@
 package io.github.windsekirun.hibiku.feature.ui.immersive
 
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.media.AudioDeviceInfo
-import android.media.AudioManager
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -19,9 +19,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,31 +31,33 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -206,7 +206,6 @@ fun ImmersivePlayerScreen(
     val topBarIconBg = if (isDarkMode) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.08f)
 
     var isShapeBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var isAudioBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
     var isQueueBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     val safePadding = WindowInsets.safeDrawing.asPaddingValues()
@@ -513,9 +512,6 @@ fun LandscapeImmersiveLayout(
     onSkipPrevious: () -> Unit,
     onSkipNext: () -> Unit,
     onSeek: (Long) -> Unit,
-    onToggleShuffle: () -> Unit = {},
-    onToggleRepeat: () -> Unit = {},
-    onOpenAudioOutput: () -> Unit = {},
     onOpenQueue: () -> Unit = {}
 ) {
     Row(
@@ -660,7 +656,6 @@ fun LandscapeImmersiveLayout(
                 )
 
                 QueueIconButton(
-                    accentColor = accentColor,
                     onClick = onOpenQueue
                 )
             }
@@ -678,8 +673,6 @@ fun PortraitImmersiveLayout(
     onSkipPrevious: () -> Unit,
     onSkipNext: () -> Unit,
     onSeek: (Long) -> Unit,
-    onToggleShuffle: () -> Unit = {},
-    onToggleRepeat: () -> Unit = {},
     onOpenQueue: () -> Unit = {}
 ) {
     Column(
@@ -826,47 +819,12 @@ fun PortraitImmersiveLayout(
                 )
 
                 QueueIconButton(
-                    accentColor = accentColor,
                     onClick = onOpenQueue
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
         }
-    }
-}
-
-@Composable
-fun PlaybackModeToggleButton(
-    isActive: Boolean,
-    iconRes: Int,
-    contentDescription: String,
-    accentColor: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val backgroundColor = if (isActive) accentColor.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.08f)
-    val iconTint = if (isActive) accentColor else Color.White.copy(alpha = 0.7f)
-    val borderModifier = if (isActive) {
-        Modifier.border(1.dp, accentColor.copy(alpha = 0.6f), CircleShape)
-    } else {
-        Modifier
-    }
-
-    IconButton(
-        onClick = onClick,
-        modifier = modifier
-            .size(44.dp)
-            .clip(CircleShape)
-            .then(borderModifier)
-            .background(backgroundColor)
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = contentDescription,
-            tint = iconTint,
-            modifier = Modifier.size(20.dp)
-        )
     }
 }
 
@@ -927,7 +885,6 @@ fun AppSessionChip(
 
 @Composable
 fun QueueIconButton(
-    accentColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -956,7 +913,20 @@ fun QueueBottomSheet(
     onDismiss: () -> Unit
 ) {
     val items = playbackState.queueItems
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+    val noOverscrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                // Consume all overscroll deltas so sheet does not bounce or jiggle when scrolling reaches list bounds
+                return available
+            }
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -994,7 +964,8 @@ fun QueueBottomSheet(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f, fill = false),
+                        .weight(1f, fill = false)
+                        .nestedScroll(noOverscrollConnection),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(items) { index, queueItem ->
@@ -1138,9 +1109,7 @@ fun ImmersivePlayerPortraitPreview() {
             onPlayPause = {},
             onSkipPrevious = {},
             onSkipNext = {},
-            onSeek = {},
-            onToggleShuffle = {},
-            onToggleRepeat = {}
+            onSeek = {}
         )
     }
 }
