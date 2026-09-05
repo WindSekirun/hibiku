@@ -194,6 +194,9 @@ class MediaNotificationListenerService : NotificationListenerService() {
             ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
         val durationMs = metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
 
+        val isShuffleEnabled = playbackState?.extras?.getBoolean("SHUFFLE_ENABLED") ?: false
+        val repeatMode = playbackState?.extras?.getInt("REPEAT_MODE") ?: 0
+
         val state = MediaPlaybackState(
             isPlaying = isPlaying,
             title = title,
@@ -202,7 +205,9 @@ class MediaNotificationListenerService : NotificationListenerService() {
             positionMs = positionMs,
             durationMs = durationMs,
             packageName = controller.packageName,
-            sessionActivity = controller.sessionActivity
+            sessionActivity = controller.sessionActivity,
+            isShuffleEnabled = isShuffleEnabled,
+            repeatMode = repeatMode
         )
 
         MediaPlaybackRepository.updatePlaybackState(state)
@@ -279,6 +284,24 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
             override fun onSeekTo(positionMs: Long) {
                 controller.transportControls.seekTo(positionMs)
+            }
+
+            override fun onToggleShuffle() {
+                val current = MediaPlaybackRepository.playbackState.value
+                val newShuffle = !current.isShuffleEnabled
+                MediaPlaybackRepository.updatePlaybackState(current.copy(isShuffleEnabled = newShuffle))
+                try {
+                    controller.transportControls.sendCustomAction("ACTION_TOGGLE_SHUFFLE", null)
+                } catch (_: Exception) {}
+            }
+
+            override fun onToggleRepeat() {
+                val current = MediaPlaybackRepository.playbackState.value
+                val newRepeat = (current.repeatMode + 1) % 3
+                MediaPlaybackRepository.updatePlaybackState(current.copy(repeatMode = newRepeat))
+                try {
+                    controller.transportControls.sendCustomAction("ACTION_TOGGLE_REPEAT", null)
+                } catch (_: Exception) {}
             }
         })
     }

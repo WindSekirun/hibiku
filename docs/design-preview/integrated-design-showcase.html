@@ -689,6 +689,29 @@
     background: #313858;
     transform: scale(1.06);
   }
+  .btn-toggle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
+  .btn-toggle.active {
+    background: rgba(96, 165, 250, 0.22);
+    border-color: var(--immersive-accent);
+    color: var(--immersive-accent);
+    box-shadow: 0 0 12px var(--immersive-glow);
+  }
   .seekbar-container {
     display: flex;
     flex-direction: column;
@@ -958,20 +981,22 @@
               <h1 class="track-title">SUPERNOVA</h1>
               <div class="track-artist">白上フブキ &bull; Hololive Production</div>
             </div>
-            <div class="header-actions">
-              <button class="top-btn" title="가사"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></button>
-              <button class="top-btn" title="좋아요"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></button>
-            </div>
           </div>
 
           <div class="control-card">
             <div class="buttons-row">
+              <button class="btn-toggle" id="btnImmersiveShuffle" title="셔플 모드" onclick="toggleImmersiveShuffle(this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm0.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+              </button>
               <button class="btn-scallop" title="이전곡"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
               <button class="btn-play-pill" id="btnImmersivePlay" onclick="toggleImmersivePlay()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 <span>Play</span>
               </button>
               <button class="btn-scallop" title="다음곡"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+              <button class="btn-toggle active" id="btnImmersiveRepeat" title="반복 모드" onclick="toggleImmersiveRepeat(this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+              </button>
             </div>
 
             <div class="seekbar-container">
@@ -1189,6 +1214,28 @@
       btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><span>Pause</span>';
     } else {
       btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>Play</span>';
+    }
+  }
+
+  function toggleImmersiveShuffle(btn) {
+    btn.classList.toggle('active');
+  }
+
+  let repeatMode = 1; // 0: off, 1: all, 2: one
+  function toggleImmersiveRepeat(btn) {
+    repeatMode = (repeatMode + 1) % 3;
+    if (repeatMode === 0) {
+      btn.classList.remove('active');
+      btn.title = "반복 안 함";
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>';
+    } else if (repeatMode === 1) {
+      btn.classList.add('active');
+      btn.title = "전체 반복";
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>';
+    } else {
+      btn.classList.add('active');
+      btn.title = "한 곡 반복";
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1l-2 1v1h1.5v4H13z"/></svg>';
     }
   }
 </script>

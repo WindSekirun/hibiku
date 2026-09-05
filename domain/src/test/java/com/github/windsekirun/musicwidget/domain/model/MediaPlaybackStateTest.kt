@@ -54,5 +54,14 @@ class MediaPlaybackStateTest {
     fun progress_defaultState_returnsZero() {
         val state = MediaPlaybackState()
         assertEquals(0f, state.progress, 0.0001f)
+        assertEquals(false, state.isShuffleEnabled)
+        assertEquals(0, state.repeatMode)
+        assertEquals(false, state.isRepeatEnabled)
+    }
+
+    @Test
+    fun isRepeatEnabled_whenRepeatModeNonZero_returnsTrue() {
+        val state = MediaPlaybackState(repeatMode = 1)
+        assertEquals(true, state.isRepeatEnabled)
     }
 }

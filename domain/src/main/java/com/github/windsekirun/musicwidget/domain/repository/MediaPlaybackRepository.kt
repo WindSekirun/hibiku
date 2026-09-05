@@ -13,6 +13,8 @@ interface MediaPlaybackRepository {
     fun skipToNext()
     fun skipToPrevious()
     fun seekTo(positionMs: Long)
+    fun toggleShuffle()
+    fun toggleRepeat()
     fun updatePlaybackState(state: MediaPlaybackState)
     fun updatePosition(positionMs: Long)
     fun setActionHandler(handler: ActionHandler?)
@@ -22,7 +24,9 @@ interface MediaPlaybackRepository {
         playPause: (() -> Unit)? = null,
         skipToNext: (() -> Unit)? = null,
         skipToPrevious: (() -> Unit)? = null,
-        seekTo: ((Long) -> Unit)? = null
+        seekTo: ((Long) -> Unit)? = null,
+        toggleShuffle: (() -> Unit)? = null,
+        toggleRepeat: (() -> Unit)? = null
     ) {
         setActionHandler(object : ActionHandler {
             override fun onPlayPause() {
@@ -40,6 +44,14 @@ interface MediaPlaybackRepository {
             override fun onSeekTo(positionMs: Long) {
                 seekTo?.invoke(positionMs)
             }
+
+            override fun onToggleShuffle() {
+                toggleShuffle?.invoke()
+            }
+
+            override fun onToggleRepeat() {
+                toggleRepeat?.invoke()
+            }
         })
     }
 
@@ -48,6 +60,8 @@ interface MediaPlaybackRepository {
         fun onSkipToNext() {}
         fun onSkipToPrevious() {}
         fun onSeekTo(positionMs: Long) {}
+        fun onToggleShuffle() {}
+        fun onToggleRepeat() {}
     }
 
     companion object : DefaultMediaPlaybackRepository()
@@ -78,6 +92,14 @@ open class DefaultMediaPlaybackRepository : MediaPlaybackRepository {
 
     override fun seekTo(positionMs: Long) {
         actionHandler?.onSeekTo(positionMs)
+    }
+
+    override fun toggleShuffle() {
+        actionHandler?.onToggleShuffle()
+    }
+
+    override fun toggleRepeat() {
+        actionHandler?.onToggleRepeat()
     }
 
     override fun updatePlaybackState(state: MediaPlaybackState) {

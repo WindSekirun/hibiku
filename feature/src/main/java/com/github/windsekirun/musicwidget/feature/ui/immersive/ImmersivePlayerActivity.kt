@@ -83,7 +83,9 @@ class ImmersivePlayerActivity : ComponentActivity() {
                 onPlayPause = { MediaPlaybackRepository.playPause() },
                 onSkipPrevious = { MediaPlaybackRepository.skipToPrevious() },
                 onSkipNext = { MediaPlaybackRepository.skipToNext() },
-                onSeek = { MediaPlaybackRepository.seekTo(it) }
+                onSeek = { MediaPlaybackRepository.seekTo(it) },
+                onToggleShuffle = { MediaPlaybackRepository.toggleShuffle() },
+                onToggleRepeat = { MediaPlaybackRepository.toggleRepeat() }
             )
         }
     }
@@ -96,7 +98,9 @@ fun ImmersivePlayerScreen(
     onPlayPause: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSkipNext: () -> Unit,
-    onSeek: (Long) -> Unit
+    onSeek: (Long) -> Unit,
+    onToggleShuffle: () -> Unit = {},
+    onToggleRepeat: () -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -184,7 +188,9 @@ fun ImmersivePlayerScreen(
                     onPlayPause = onPlayPause,
                     onSkipPrevious = onSkipPrevious,
                     onSkipNext = onSkipNext,
-                    onSeek = onSeek
+                    onSeek = onSeek,
+                    onToggleShuffle = onToggleShuffle,
+                    onToggleRepeat = onToggleRepeat
                 )
             } else {
                 PortraitImmersiveLayout(
@@ -194,7 +200,9 @@ fun ImmersivePlayerScreen(
                     onPlayPause = onPlayPause,
                     onSkipPrevious = onSkipPrevious,
                     onSkipNext = onSkipNext,
-                    onSeek = onSeek
+                    onSeek = onSeek,
+                    onToggleShuffle = onToggleShuffle,
+                    onToggleRepeat = onToggleRepeat
                 )
             }
         }
@@ -209,7 +217,9 @@ fun LandscapeImmersiveLayout(
     onPlayPause: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSkipNext: () -> Unit,
-    onSeek: (Long) -> Unit
+    onSeek: (Long) -> Unit,
+    onToggleShuffle: () -> Unit = {},
+    onToggleRepeat: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -290,15 +300,24 @@ fun LandscapeImmersiveLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Controls Row
+            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat - OutputChip
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.Start),
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Shuffle toggle button
+                PlaybackModeToggleButton(
+                    isActive = playbackState.isShuffleEnabled,
+                    iconRes = R.drawable.ic_shuffle,
+                    contentDescription = "Shuffle",
+                    accentColor = accentColor,
+                    onClick = onToggleShuffle
+                )
+
                 ScallopButton(
                     onClick = onSkipPrevious,
-                    size = 56.dp,
+                    size = 54.dp,
                     backgroundColor = Color.White.copy(alpha = 0.12f)
                 ) {
                     Icon(
@@ -313,13 +332,13 @@ fun LandscapeImmersiveLayout(
                     isPlaying = playbackState.isPlaying,
                     accentColor = accentColor,
                     onClick = onPlayPause,
-                    width = 112.dp,
-                    height = 58.dp
+                    width = 104.dp,
+                    height = 56.dp
                 )
 
                 ScallopButton(
                     onClick = onSkipNext,
-                    size = 56.dp,
+                    size = 54.dp,
                     backgroundColor = Color.White.copy(alpha = 0.12f)
                 ) {
                     Icon(
@@ -329,6 +348,16 @@ fun LandscapeImmersiveLayout(
                         modifier = Modifier.size(26.dp)
                     )
                 }
+
+                // Repeat toggle button (off / all / one)
+                val repeatIconRes = if (playbackState.repeatMode == 2) R.drawable.ic_repeat_one else R.drawable.ic_repeat
+                PlaybackModeToggleButton(
+                    isActive = playbackState.isRepeatEnabled,
+                    iconRes = repeatIconRes,
+                    contentDescription = "Repeat",
+                    accentColor = accentColor,
+                    onClick = onToggleRepeat
+                )
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -347,7 +376,9 @@ fun PortraitImmersiveLayout(
     onPlayPause: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSkipNext: () -> Unit,
-    onSeek: (Long) -> Unit
+    onSeek: (Long) -> Unit,
+    onToggleShuffle: () -> Unit = {},
+    onToggleRepeat: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -430,15 +461,23 @@ fun PortraitImmersiveLayout(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Controls Row
+            // Controls Row: Shuffle - Prev - Play/Pause - Next - Repeat
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                PlaybackModeToggleButton(
+                    isActive = playbackState.isShuffleEnabled,
+                    iconRes = R.drawable.ic_shuffle,
+                    contentDescription = "Shuffle",
+                    accentColor = accentColor,
+                    onClick = onToggleShuffle
+                )
+
                 ScallopButton(
                     onClick = onSkipPrevious,
-                    size = 56.dp,
+                    size = 54.dp,
                     backgroundColor = Color.White.copy(alpha = 0.12f)
                 ) {
                     Icon(
@@ -449,21 +488,17 @@ fun PortraitImmersiveLayout(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(28.dp))
-
                 M3BoldPillButton(
                     isPlaying = playbackState.isPlaying,
                     accentColor = accentColor,
                     onClick = onPlayPause,
-                    width = 112.dp,
-                    height = 58.dp
+                    width = 104.dp,
+                    height = 56.dp
                 )
-
-                Spacer(modifier = Modifier.width(28.dp))
 
                 ScallopButton(
                     onClick = onSkipNext,
-                    size = 56.dp,
+                    size = 54.dp,
                     backgroundColor = Color.White.copy(alpha = 0.12f)
                 ) {
                     Icon(
@@ -473,6 +508,15 @@ fun PortraitImmersiveLayout(
                         modifier = Modifier.size(26.dp)
                     )
                 }
+
+                val repeatIconRes = if (playbackState.repeatMode == 2) R.drawable.ic_repeat_one else R.drawable.ic_repeat
+                PlaybackModeToggleButton(
+                    isActive = playbackState.isRepeatEnabled,
+                    iconRes = repeatIconRes,
+                    contentDescription = "Repeat",
+                    accentColor = accentColor,
+                    onClick = onToggleRepeat
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -481,6 +525,40 @@ fun PortraitImmersiveLayout(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
+    }
+}
+
+@Composable
+fun PlaybackModeToggleButton(
+    isActive: Boolean,
+    iconRes: Int,
+    contentDescription: String,
+    accentColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isActive) accentColor.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.08f)
+    val iconTint = if (isActive) accentColor else Color.White.copy(alpha = 0.7f)
+    val borderModifier = if (isActive) {
+        Modifier.border(1.dp, accentColor.copy(alpha = 0.6f), CircleShape)
+    } else {
+        Modifier
+    }
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .then(borderModifier)
+            .background(backgroundColor)
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            tint = iconTint,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
@@ -540,7 +618,9 @@ fun ImmersivePlayerPortraitPreview() {
         artist = "Shirakami Fubuki",
         positionMs = 85_000L,
         durationMs = 210_000L,
-        packageName = "com.spotify.music"
+        packageName = "com.spotify.music",
+        isShuffleEnabled = true,
+        repeatMode = 1
     )
 
     MaterialTheme {
@@ -551,7 +631,9 @@ fun ImmersivePlayerPortraitPreview() {
             onPlayPause = {},
             onSkipPrevious = {},
             onSkipNext = {},
-            onSeek = {}
+            onSeek = {},
+            onToggleShuffle = {},
+            onToggleRepeat = {}
         )
     }
 }
@@ -570,7 +652,9 @@ fun ImmersivePlayerLandscapePreview() {
         artist = "Shirakami Fubuki",
         positionMs = 85_000L,
         durationMs = 210_000L,
-        packageName = "com.spotify.music"
+        packageName = "com.spotify.music",
+        isShuffleEnabled = true,
+        repeatMode = 1
     )
 
     MaterialTheme {
@@ -581,7 +665,9 @@ fun ImmersivePlayerLandscapePreview() {
             onPlayPause = {},
             onSkipPrevious = {},
             onSkipNext = {},
-            onSeek = {}
+            onSeek = {},
+            onToggleShuffle = {},
+            onToggleRepeat = {}
         )
     }
 }
