@@ -1,9 +1,0 @@
-com.github.windsekirun.musicwidget.feature-pngs-0 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/build/generated/res/pngs/debug
-com.github.windsekirun.musicwidget.feature-updated_navigation_xml-1 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/build/generated/updated_navigation_xml/debug
-com.github.windsekirun.musicwidget.feature-mergeDebugResources-2 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.github.windsekirun.musicwidget.feature-mergeDebugResources-3 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.github.windsekirun.musicwidget.feature-debug-4 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/build/intermediates/merged_res/debug/mergeDebugResources
-com.github.windsekirun.musicwidget.feature-debug-5 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/build/intermediates/packaged_res/debug/packageDebugResources
-com.github.windsekirun.musicwidget.feature-debug-6 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/src/debug/res
-com.github.windsekirun.musicwidget.feature-main-7 /Users/windsekirun/AndroidStudioProjects/MusicWidget/feature/src/main/res
-gradleHome-0 /Users/windsekirun/.gradle
