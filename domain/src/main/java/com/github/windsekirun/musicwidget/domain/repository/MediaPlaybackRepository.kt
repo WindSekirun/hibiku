@@ -4,6 +4,7 @@ import com.github.windsekirun.musicwidget.domain.model.MediaPlaybackState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 interface MediaPlaybackRepository {
     val playbackState: StateFlow<MediaPlaybackState>
@@ -14,6 +15,33 @@ interface MediaPlaybackRepository {
     fun seekTo(positionMs: Long)
     fun updatePlaybackState(state: MediaPlaybackState)
     fun updatePosition(positionMs: Long)
+    fun setActionHandler(handler: ActionHandler?)
+    fun reset()
+
+    fun setActions(
+        playPause: (() -> Unit)? = null,
+        skipToNext: (() -> Unit)? = null,
+        skipToPrevious: (() -> Unit)? = null,
+        seekTo: ((Long) -> Unit)? = null
+    ) {
+        setActionHandler(object : ActionHandler {
+            override fun onPlayPause() {
+                playPause?.invoke()
+            }
+
+            override fun onSkipToNext() {
+                skipToNext?.invoke()
+            }
+
+            override fun onSkipToPrevious() {
+                skipToPrevious?.invoke()
+            }
+
+            override fun onSeekTo(positionMs: Long) {
+                seekTo?.invoke(positionMs)
+            }
+        })
+    }
 
     interface ActionHandler {
         fun onPlayPause() {}
@@ -32,33 +60,8 @@ open class DefaultMediaPlaybackRepository : MediaPlaybackRepository {
     @Volatile
     private var actionHandler: MediaPlaybackRepository.ActionHandler? = null
 
-    fun setActionHandler(handler: MediaPlaybackRepository.ActionHandler?) {
+    override fun setActionHandler(handler: MediaPlaybackRepository.ActionHandler?) {
         this.actionHandler = handler
-    }
-
-    fun setActions(
-        playPause: (() -> Unit)? = null,
-        skipToNext: (() -> Unit)? = null,
-        skipToPrevious: (() -> Unit)? = null,
-        seekTo: ((Long) -> Unit)? = null
-    ) {
-        this.actionHandler = object : MediaPlaybackRepository.ActionHandler {
-            override fun onPlayPause() {
-                playPause?.invoke()
-            }
-
-            override fun onSkipToNext() {
-                skipToNext?.invoke()
-            }
-
-            override fun onSkipToPrevious() {
-                skipToPrevious?.invoke()
-            }
-
-            override fun onSeekTo(positionMs: Long) {
-                seekTo?.invoke(positionMs)
-            }
-        }
     }
 
     override fun playPause() {
@@ -82,6 +85,11 @@ open class DefaultMediaPlaybackRepository : MediaPlaybackRepository {
     }
 
     override fun updatePosition(positionMs: Long) {
-        _playbackState.value = _playbackState.value.copy(positionMs = positionMs)
+        _playbackState.update { it.copy(positionMs = positionMs) }
+    }
+
+    override fun reset() {
+        actionHandler = null
+        _playbackState.value = MediaPlaybackState()
     }
 }

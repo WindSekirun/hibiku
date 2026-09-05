@@ -1,15 +1,22 @@
 package com.github.windsekirun.musicwidget.domain.repository
 
 import com.github.windsekirun.musicwidget.domain.model.MediaPlaybackState
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MediaPlaybackRepositoryTest {
 
+    @After
+    fun tearDown() {
+        MediaPlaybackRepository.reset()
+    }
+
     @Test
     fun defaultPlaybackState_hasDefaultValues() {
-        val repository = DefaultMediaPlaybackRepository()
+        val repository: MediaPlaybackRepository = DefaultMediaPlaybackRepository()
         val state = repository.playbackState.value
 
         assertEquals(false, state.isPlaying)
@@ -21,7 +28,7 @@ class MediaPlaybackRepositoryTest {
 
     @Test
     fun updatePlaybackState_updatesFlowValue() {
-        val repository = DefaultMediaPlaybackRepository()
+        val repository: MediaPlaybackRepository = DefaultMediaPlaybackRepository()
         val newState = MediaPlaybackState(
             isPlaying = true,
             title = "Supernova",
@@ -35,8 +42,8 @@ class MediaPlaybackRepositoryTest {
     }
 
     @Test
-    fun updatePosition_updatesOnlyPositionMs() {
-        val repository = DefaultMediaPlaybackRepository()
+    fun updatePosition_updatesOnlyPositionMsAtomically() {
+        val repository: MediaPlaybackRepository = DefaultMediaPlaybackRepository()
         val initialState = MediaPlaybackState(
             isPlaying = true,
             title = "Drama",
@@ -57,19 +64,19 @@ class MediaPlaybackRepositoryTest {
     }
 
     @Test
-    fun actionHandler_invokesCallbacks() {
-        val repository = DefaultMediaPlaybackRepository()
+    fun actionHandler_invokesCallbacksViaInterface() {
+        val repository: MediaPlaybackRepository = DefaultMediaPlaybackRepository()
         var playPauseCalled = false
         var skipNextCalled = false
         var skipPrevCalled = false
         var seekPosition: Long? = null
 
-        repository.setActions(
-            playPause = { playPauseCalled = true },
-            skipToNext = { skipNextCalled = true },
-            skipToPrevious = { skipPrevCalled = true },
-            seekTo = { seekPosition = it }
-        )
+        repository.setActionHandler(object : MediaPlaybackRepository.ActionHandler {
+            override fun onPlayPause() { playPauseCalled = true }
+            override fun onSkipToNext() { skipNextCalled = true }
+            override fun onSkipToPrevious() { skipPrevCalled = true }
+            override fun onSeekTo(positionMs: Long) { seekPosition = positionMs }
+        })
 
         repository.playPause()
         repository.skipToNext()
@@ -80,6 +87,20 @@ class MediaPlaybackRepositoryTest {
         assertTrue(skipNextCalled)
         assertTrue(skipPrevCalled)
         assertEquals(42_000L, seekPosition)
+    }
+
+    @Test
+    fun reset_clearsPlaybackStateAndActionHandler() {
+        val repository: MediaPlaybackRepository = DefaultMediaPlaybackRepository()
+        var playPauseCalled = false
+        repository.setActions(playPause = { playPauseCalled = true })
+        repository.updatePlaybackState(MediaPlaybackState(title = "Whiplash", isPlaying = true))
+
+        repository.reset()
+
+        assertEquals(MediaPlaybackState(), repository.playbackState.value)
+        repository.playPause()
+        assertEquals(false, playPauseCalled)
     }
 
     @Test
@@ -95,5 +116,8 @@ class MediaPlaybackRepositoryTest {
         val testState = MediaPlaybackState(title = "Singleton Song")
         MediaPlaybackRepository.updatePlaybackState(testState)
         assertEquals("Singleton Song", MediaPlaybackRepository.playbackState.value.title)
+
+        MediaPlaybackRepository.reset()
+        assertEquals("", MediaPlaybackRepository.playbackState.value.title)
     }
 }
