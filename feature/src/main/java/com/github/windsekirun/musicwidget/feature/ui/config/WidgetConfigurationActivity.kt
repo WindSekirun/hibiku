@@ -64,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
@@ -542,7 +543,7 @@ fun RingStylePickerRow(
 // Compose UI Previews
 // -------------------------------------------------------------------------
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Configuration Screen Preview", showBackground = true)
+@Preview(name = "Configuration Screen Preview", showBackground = true)
 @Composable
 fun WidgetConfigurationScreenPreview() {
     MaterialTheme(
@@ -567,7 +568,7 @@ fun WidgetConfigurationScreenPreview() {
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Permission Notice Banner Preview")
+@Preview(name = "Permission Notice Banner Preview")
 @Composable
 fun PermissionNoticeBannerPreview() {
     MaterialTheme {
@@ -575,7 +576,7 @@ fun PermissionNoticeBannerPreview() {
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Ring Style Picker Row Preview", backgroundColor = 0xFF1E1E1E, showBackground = true)
+@Preview(name = "Ring Style Picker Row Preview", backgroundColor = 0xFF1E1E1E, showBackground = true)
 @Composable
 fun RingStylePickerRowPreview() {
     MaterialTheme {

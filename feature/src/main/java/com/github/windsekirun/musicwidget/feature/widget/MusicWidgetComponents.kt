@@ -2,6 +2,7 @@ package com.github.windsekirun.musicwidget.feature.widget
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -49,8 +50,8 @@ fun resolveWidgetConfigAndColor(
     val config = prefs.loadConfig(appWidgetId)
 
     val defaultColor = runCatching {
-        android.graphics.Color.parseColor(config.borderColorHex)
-    }.getOrDefault(android.graphics.Color.WHITE)
+        AndroidColor.parseColor(config.borderColorHex)
+    }.getOrDefault(AndroidColor.WHITE)
 
     val accentColor = if (config.useDynamicColor) {
         PaletteExtractor.extractAccentColor(artwork, defaultColor)

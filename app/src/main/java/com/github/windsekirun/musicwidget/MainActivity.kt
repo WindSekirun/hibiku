@@ -60,6 +60,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.github.windsekirun.musicwidget.feature.R as FeatureR
 import com.github.windsekirun.musicwidget.feature.ui.immersive.ImmersivePlayerActivity
 
 class MainActivity : ComponentActivity() {
@@ -302,7 +303,7 @@ fun MainAppScreen(
                             .height(48.dp)
                     ) {
                         Icon(
-                            painter = painterResource(com.github.windsekirun.musicwidget.feature.R.drawable.ic_widget_play),
+                            painter = painterResource(FeatureR.drawable.ic_widget_play),
                             contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )

@@ -36,11 +36,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.windsekirun.musicwidget.core.graphics.PaletteExtractor
 import com.github.windsekirun.musicwidget.core.graphics.WidgetBitmapRenderer
 import com.github.windsekirun.musicwidget.domain.model.MediaPlaybackState
+import com.github.windsekirun.musicwidget.domain.model.RingStyle
 import com.github.windsekirun.musicwidget.domain.model.WidgetConfig
 import com.github.windsekirun.musicwidget.feature.R
 
@@ -280,7 +282,7 @@ fun WidgetPreviewCard(
 // Compose UI Previews
 // -------------------------------------------------------------------------
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Widget Preview Card - Live Preview", showBackground = true, backgroundColor = 0xFF121212)
+@Preview(name = "Widget Preview Card - Live Preview", showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun WidgetPreviewCardPreview() {
     MaterialTheme {
@@ -293,7 +295,7 @@ fun WidgetPreviewCardPreview() {
                 durationMs = 210_000L
             ),
             widgetConfig = WidgetConfig(
-                ringStyle = com.github.windsekirun.musicwidget.domain.model.RingStyle.SQUIGGLY_WAVE,
+                ringStyle = RingStyle.SQUIGGLY_WAVE,
                 borderColorHex = "#5CB3FF",
                 useDynamicColor = true,
                 textVisible = true

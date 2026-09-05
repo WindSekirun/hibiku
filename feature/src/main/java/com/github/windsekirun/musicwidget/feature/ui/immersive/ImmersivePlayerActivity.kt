@@ -53,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.windsekirun.musicwidget.core.graphics.PaletteExtractor
@@ -604,7 +605,7 @@ fun AudioOutputChip(
 // Compose UI Previews (StandBy Portrait & Landscape)
 // -------------------------------------------------------------------------
 
-@androidx.compose.ui.tooling.preview.Preview(
+@Preview(
     name = "Immersive Player - Portrait",
     widthDp = 390,
     heightDp = 844,
@@ -638,7 +639,7 @@ fun ImmersivePlayerPortraitPreview() {
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(
+@Preview(
     name = "Immersive Player - Landscape StandBy",
     widthDp = 844,
     heightDp = 390,
