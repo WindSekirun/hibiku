@@ -86,6 +86,7 @@ class MediaPlaybackRepositoryTest {
         assertTrue(skipNextCalled)
         assertTrue(skipPrevCalled)
         assertEquals(42_000L, seekPosition)
+        assertEquals(42_000L, repository.playbackState.value.positionMs)
     }
 
     @Test

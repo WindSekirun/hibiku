@@ -32,14 +32,23 @@ class WidgetPreferencesRepository(
      * Saves the [WidgetConfig] for the specified [appWidgetId].
      */
     fun saveConfig(appWidgetId: Int, config: WidgetConfig) {
-        preferences.edit()
-            .putString(keyRingStyle(appWidgetId), config.ringStyle.name)
-            .putString(keyBorderColor(appWidgetId), config.borderColorHex)
-            .putBoolean(keyDynamicColor(appWidgetId), config.useDynamicColor)
-            .putBoolean(keyTextVisible(appWidgetId), config.textVisible)
-            .putString(keyShapeStyle(appWidgetId), config.shapeStyle.name)
-            .putBoolean(keyUseBlur(appWidgetId), config.useBlurBackground)
-            .apply()
+        val editor = preferences.edit()
+        putConfig(editor, appWidgetId, config)
+        if (appWidgetId == -1) {
+            getAllConfiguredWidgetIds().forEach { id ->
+                putConfig(editor, id, config)
+            }
+        }
+        editor.commit()
+    }
+
+    private fun putConfig(editor: SharedPreferences.Editor, id: Int, config: WidgetConfig) {
+        editor.putString(keyRingStyle(id), config.ringStyle.name)
+            .putString(keyBorderColor(id), config.borderColorHex)
+            .putBoolean(keyDynamicColor(id), config.useDynamicColor)
+            .putBoolean(keyTextVisible(id), config.textVisible)
+            .putString(keyShapeStyle(id), config.shapeStyle.name)
+            .putBoolean(keyUseBlur(id), config.useBlurBackground)
     }
 
     /**
@@ -47,8 +56,16 @@ class WidgetPreferencesRepository(
      * Returns default [WidgetConfig] if not found or corrupted.
      */
     fun loadConfig(appWidgetId: Int): WidgetConfig {
-        val defaultConfig = WidgetConfig()
+        val defaultConfig = if (appWidgetId != -1 && preferences.contains(keyRingStyle(-1))) {
+            loadConfigInternal(-1, WidgetConfig())
+        } else {
+            WidgetConfig()
+        }
 
+        return loadConfigInternal(appWidgetId, defaultConfig)
+    }
+
+    private fun loadConfigInternal(appWidgetId: Int, defaultConfig: WidgetConfig): WidgetConfig {
         val ringStyleStr = preferences.getString(keyRingStyle(appWidgetId), null)
         val ringStyle = ringStyleStr?.let {
             runCatching { RingStyle.valueOf(it) }.getOrNull()
@@ -104,7 +121,7 @@ class WidgetPreferencesRepository(
             .remove(keyTextVisible(appWidgetId))
             .remove(keyShapeStyle(appWidgetId))
             .remove(keyUseBlur(appWidgetId))
-            .apply()
+            .commit()
     }
 
     /**

@@ -174,6 +174,37 @@ class WidgetPreferencesRepositoryTest {
         assertFalse(secondToggle)
         assertFalse(repository.isMinimalOverlayVisible(88))
     }
+
+    @Test
+    fun loadConfig_inheritsFromGlobalNegativeOneWhenNotExplicitlyConfigured() {
+        val globalConfig = WidgetConfig(
+            ringStyle = RingStyle.GLOW_THUMB,
+            useBlurBackground = false,
+            borderColorHex = "#112233"
+        )
+        repository.saveConfig(-1, globalConfig)
+
+        // Widget 99 has no custom config, should inherit global settings
+        val loaded = repository.loadConfig(99)
+        assertEquals(RingStyle.GLOW_THUMB, loaded.ringStyle)
+        assertEquals(false, loaded.useBlurBackground)
+        assertEquals("#112233", loaded.borderColorHex)
+    }
+
+    @Test
+    fun saveConfig_withNegativeOne_updatesAllConfiguredWidgets() {
+        repository.saveConfig(10, WidgetConfig(useBlurBackground = false))
+        repository.saveConfig(20, WidgetConfig(useBlurBackground = false))
+
+        assertFalse(repository.loadConfig(10).useBlurBackground)
+        assertFalse(repository.loadConfig(20).useBlurBackground)
+
+        // Updating with -1 (e.g. from app settings) should update existing widgets
+        repository.saveConfig(-1, WidgetConfig(useBlurBackground = true))
+
+        assertTrue(repository.loadConfig(10).useBlurBackground)
+        assertTrue(repository.loadConfig(20).useBlurBackground)
+    }
 }
 
 /**

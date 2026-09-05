@@ -1,20 +1,26 @@
 package io.github.windsekirun.hibiku.feature.service
 
+import android.app.Notification
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
 import android.os.SystemClock
 import android.service.notification.NotificationListenerService
+import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
 import io.github.windsekirun.hibiku.domain.model.QueueItemInfo
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
@@ -37,35 +43,26 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     private var activeController: MediaController? = null
     private var isReceiverRegistered = false
+    private val controllerCallbacks = mutableMapOf<MediaSession.Token, Pair<MediaController, MediaController.Callback>>()
 
     private val sessionsChangedListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
         updateActiveSession(controllers)
     }
 
-    private val controllerCallback = object : MediaController.Callback() {
-        override fun onPlaybackStateChanged(state: PlaybackState?) {
-            activeController?.let { updatePlaybackFromController(it) }
+    override fun onNotificationPosted(sbn: StatusBarNotification?) {
+        super.onNotificationPosted(sbn)
+        if (sbn == null) return
+        val extras = sbn.notification.extras ?: return
+        val hasMediaSession = extras.containsKey(Notification.EXTRA_MEDIA_SESSION)
+        val isMediaCategory = sbn.notification.category == Notification.CATEGORY_TRANSPORT
+        if (hasMediaSession || isMediaCategory) {
+            queryActiveSessions()
         }
+    }
 
-        override fun onMetadataChanged(metadata: MediaMetadata?) {
-            activeController?.let { updatePlaybackFromController(it) }
-        }
-
-        override fun onQueueChanged(queue: MutableList<MediaSession.QueueItem>?) {
-            activeController?.let { updatePlaybackFromController(it) }
-        }
-
-        override fun onExtrasChanged(extras: Bundle?) {
-            activeController?.let { updatePlaybackFromController(it) }
-        }
-
-        override fun onQueueTitleChanged(title: CharSequence?) {
-            activeController?.let { updatePlaybackFromController(it) }
-        }
-
-        override fun onSessionDestroyed() {
-            handleSessionDestroyed()
-        }
+    override fun onNotificationRemoved(sbn: StatusBarNotification?) {
+        super.onNotificationRemoved(sbn)
+        queryActiveSessions()
     }
 
     override fun onCreate() {
@@ -115,7 +112,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
         unregisterScreenReceiver()
         unregisterPowerReceiver()
-        detachActiveController()
+        detachAllControllers()
         setupActionHandler(null)
         ticker.stop()
         MediaPlaybackRepository.reset()
@@ -125,7 +122,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
     override fun onDestroy() {
         unregisterScreenReceiver()
         unregisterPowerReceiver()
-        detachActiveController()
+        detachAllControllers()
         setupActionHandler(null)
         ticker.stop()
         serviceScope.cancel()
@@ -200,19 +197,71 @@ class MediaNotificationListenerService : NotificationListenerService() {
     }
 
     private fun updateActiveSession(controllers: List<MediaController>?) {
+        val currentTokens = controllers?.map { it.sessionToken }?.toSet() ?: emptySet()
+        val tokensToRemove = controllerCallbacks.keys - currentTokens
+        tokensToRemove.forEach { token ->
+            controllerCallbacks.remove(token)?.let { (controller, callback) ->
+                try {
+                    controller.unregisterCallback(callback)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to unregister controller callback", e)
+                }
+            }
+        }
+
+        controllers?.forEach { controller ->
+            val token = controller.sessionToken
+            if (!controllerCallbacks.containsKey(token)) {
+                val callback = object : MediaController.Callback() {
+                    override fun onPlaybackStateChanged(state: PlaybackState?) {
+                        handleControllerEvent(controller)
+                    }
+
+                    override fun onMetadataChanged(metadata: MediaMetadata?) {
+                        handleControllerEvent(controller)
+                    }
+
+                    override fun onQueueChanged(queue: MutableList<MediaSession.QueueItem>?) {
+                        handleControllerEvent(controller)
+                    }
+
+                    override fun onExtrasChanged(extras: Bundle?) {
+                        handleControllerEvent(controller)
+                    }
+
+                    override fun onQueueTitleChanged(title: CharSequence?) {
+                        handleControllerEvent(controller)
+                    }
+
+                    override fun onSessionDestroyed() {
+                        handleSessionDestroyed()
+                    }
+                }
+                try {
+                    controller.registerCallback(callback)
+                    controllerCallbacks[token] = Pair(controller, callback)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to register controller callback", e)
+                }
+            }
+        }
+
         val newController = controllers?.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+            ?: controllers?.firstOrNull {
+                val s = it.playbackState?.state
+                s == PlaybackState.STATE_BUFFERING || s == PlaybackState.STATE_CONNECTING
+            }
             ?: controllers?.firstOrNull()
 
         if (newController?.sessionToken != activeController?.sessionToken) {
-            detachActiveController()
             activeController = newController
-            newController?.registerCallback(controllerCallback)
             setupActionHandler(newController)
         }
 
         if (newController != null) {
             updatePlaybackFromController(newController)
         } else {
+            activeController = null
             setupActionHandler(null)
             ticker.stop()
             MediaPlaybackRepository.reset()
@@ -220,13 +269,76 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    private fun detachActiveController() {
-        try {
-            activeController?.unregisterCallback(controllerCallback)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to unregister controller callback", e)
+    private fun handleControllerEvent(controller: MediaController) {
+        val state = controller.playbackState?.state
+        val isPlaying = state == PlaybackState.STATE_PLAYING ||
+                state == PlaybackState.STATE_BUFFERING ||
+                state == PlaybackState.STATE_CONNECTING
+
+        if (isPlaying || activeController == null || activeController?.playbackState?.state != PlaybackState.STATE_PLAYING || activeController?.sessionToken == controller.sessionToken) {
+            if (activeController?.sessionToken != controller.sessionToken) {
+                activeController = controller
+                setupActionHandler(controller)
+            }
+            updatePlaybackFromController(controller)
         }
+    }
+
+    private fun detachAllControllers() {
+        controllerCallbacks.values.forEach { (controller, callback) ->
+            try {
+                controller.unregisterCallback(callback)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to unregister controller callback", e)
+            }
+        }
+        controllerCallbacks.clear()
         activeController = null
+    }
+
+    private fun loadBitmapFromUri(uriString: String?): Bitmap? {
+        if (uriString.isNullOrBlank()) return null
+        return try {
+            val uri = Uri.parse(uriString)
+            if (uri.scheme == "content" || uri.scheme == "android.resource" || uri.scheme == "file") {
+                contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun getActiveNotificationLargeIcon(packageName: String): Bitmap? {
+        return try {
+            activeNotifications?.firstOrNull { it.packageName == packageName }?.notification?.let { notif ->
+                notif.getLargeIcon()?.loadDrawable(this)?.toBitmap()
+                    ?: notif.extras?.getParcelable(Notification.EXTRA_LARGE_ICON, Bitmap::class.java)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun getActiveNotificationTitle(packageName: String): String? {
+        return try {
+            activeNotifications?.firstOrNull { it.packageName == packageName }?.notification?.extras
+                ?.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.ifBlank { null }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun getActiveNotificationText(packageName: String): String? {
+        return try {
+            activeNotifications?.firstOrNull { it.packageName == packageName }?.notification?.extras
+                ?.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.ifBlank { null }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun calculateRealtimePosition(playbackState: PlaybackState?): Long {
@@ -260,13 +372,25 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
         val title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
             ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
+            ?: metadata?.description?.title?.toString()
+            ?: getActiveNotificationTitle(controller.packageName)
             ?: ""
         val artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST)
             ?: metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
             ?: metadata?.getString(MediaMetadata.METADATA_KEY_AUTHOR)
+            ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)
+            ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION)
+            ?: metadata?.description?.subtitle?.toString()
+            ?: getActiveNotificationText(controller.packageName)
             ?: ""
         val albumArt = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
             ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
+            ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+            ?: metadata?.description?.iconBitmap
+            ?: loadBitmapFromUri(metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI))
+            ?: loadBitmapFromUri(metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI))
+            ?: loadBitmapFromUri(metadata?.description?.iconUri?.toString())
+            ?: getActiveNotificationLargeIcon(controller.packageName)
         val durationMs = metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
 
         val realPosition = calculateRealtimePosition(playbackState)
@@ -327,7 +451,6 @@ class MediaNotificationListenerService : NotificationListenerService() {
     }
 
     private fun handleSessionDestroyed() {
-        detachActiveController()
         queryActiveSessions()
         WidgetUpdateHelper.updateAllWidgets(this)
     }
@@ -371,7 +494,9 @@ class MediaNotificationListenerService : NotificationListenerService() {
             }
 
             override fun onSeekTo(positionMs: Long) {
+                MediaPlaybackRepository.updatePosition(positionMs)
                 controller.transportControls.seekTo(positionMs)
+                WidgetUpdateHelper.updateAllWidgets(this@MediaNotificationListenerService)
             }
         })
     }

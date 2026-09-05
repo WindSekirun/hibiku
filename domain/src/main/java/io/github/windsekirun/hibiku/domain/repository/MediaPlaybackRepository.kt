@@ -83,6 +83,7 @@ open class DefaultMediaPlaybackRepository : MediaPlaybackRepository {
     }
 
     override fun seekTo(positionMs: Long) {
+        updatePosition(positionMs)
         actionHandler?.onSeekTo(positionMs)
     }
 
