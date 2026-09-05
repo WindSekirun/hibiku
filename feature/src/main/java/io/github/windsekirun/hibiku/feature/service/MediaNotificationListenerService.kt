@@ -252,12 +252,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         val durationMs = metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
 
         val rawPosition = playbackState?.position ?: 0L
-        val isSameTrack = current.title == title && current.artist == artist
-        val positionMs = when {
-            isSameTrack && rawPosition <= 0L && current.positionMs > 0L && (isPlaying || playbackState?.state == PlaybackState.STATE_BUFFERING) -> current.positionMs
-            rawPosition >= 0L -> rawPosition
-            else -> 0L
-        }
+        val positionMs = if (rawPosition >= 0L) rawPosition else 0L
 
         val isShuffleEnabled = playbackState?.extras?.getBoolean("SHUFFLE_ENABLED") ?: false
         val repeatMode = playbackState?.extras?.getInt("REPEAT_MODE") ?: 0
@@ -359,18 +354,12 @@ class MediaNotificationListenerService : NotificationListenerService() {
             }
 
             override fun onToggleShuffle() {
-                val current = MediaPlaybackRepository.playbackState.value
-                val newShuffle = !current.isShuffleEnabled
-                MediaPlaybackRepository.updatePlaybackState(current.copy(isShuffleEnabled = newShuffle))
                 try {
                     controller.transportControls.sendCustomAction("ACTION_TOGGLE_SHUFFLE", null)
                 } catch (_: Exception) {}
             }
 
             override fun onToggleRepeat() {
-                val current = MediaPlaybackRepository.playbackState.value
-                val newRepeat = (current.repeatMode + 1) % 3
-                MediaPlaybackRepository.updatePlaybackState(current.copy(repeatMode = newRepeat))
                 try {
                     controller.transportControls.sendCustomAction("ACTION_TOGGLE_REPEAT", null)
                 } catch (_: Exception) {}
