@@ -1,0 +1,523 @@
+package com.github.windsekirun.musicwidget.feature.ui.immersive
+
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
+import android.os.Bundle
+import android.view.WindowManager
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.github.windsekirun.musicwidget.core.graphics.PaletteExtractor
+import com.github.windsekirun.musicwidget.domain.model.MediaPlaybackState
+import com.github.windsekirun.musicwidget.domain.repository.MediaPlaybackRepository
+import com.github.windsekirun.musicwidget.feature.R
+
+class ImmersivePlayerActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Full-sensor rotation override: freely rotate portrait and landscape based on physical sensor
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+
+        // Keep screen on for standby clock / music display
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Edge-to-edge fullscreen
+        enableEdgeToEdge()
+
+        setContent {
+            val playbackState by MediaPlaybackRepository.playbackState.collectAsState()
+
+            ImmersivePlayerScreen(
+                playbackState = playbackState,
+                onClose = { finish() },
+                onPlayPause = { MediaPlaybackRepository.playPause() },
+                onSkipPrevious = { MediaPlaybackRepository.skipToPrevious() },
+                onSkipNext = { MediaPlaybackRepository.skipToNext() },
+                onSeek = { MediaPlaybackRepository.seekTo(it) }
+            )
+        }
+    }
+}
+
+@Composable
+fun ImmersivePlayerScreen(
+    playbackState: MediaPlaybackState,
+    onClose: () -> Unit,
+    onPlayPause: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSeek: (Long) -> Unit
+) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val defaultAccent = 0xFF5CB3FF.toInt()
+    val accentColorInt = remember(playbackState.albumArt) {
+        PaletteExtractor.extractAccentColor(playbackState.albumArt, defaultAccent)
+    }
+    val accentColor = Color(accentColorInt)
+
+    var currentShape by rememberSaveable { mutableStateOf(ImmersiveShapeStyle.SCALLOP) }
+
+    val darkBackground = Color(0xFF0B0C0E)
+    val safePadding = WindowInsets.safeDrawing.asPaddingValues()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(darkBackground)
+            .padding(safePadding)
+    ) {
+        // Top action bar with Close button and Shape style chips
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.1f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
+            }
+
+            // Shape Selector Chips
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ImmersiveShapeStyle.entries.forEach { style ->
+                    val isSelected = style == currentShape
+                    val chipBg = if (isSelected) accentColor else Color.White.copy(alpha = 0.1f)
+                    val textColor = if (isSelected) Color(0xFF0B0C0E) else Color.White
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(chipBg)
+                            .clickable { currentShape = style }
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = style.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = textColor
+                        )
+                    }
+                }
+            }
+        }
+
+        // Responsive Body
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 56.dp)
+        ) {
+            if (isLandscape) {
+                LandscapeImmersiveLayout(
+                    playbackState = playbackState,
+                    currentShape = currentShape,
+                    accentColor = accentColor,
+                    onPlayPause = onPlayPause,
+                    onSkipPrevious = onSkipPrevious,
+                    onSkipNext = onSkipNext,
+                    onSeek = onSeek
+                )
+            } else {
+                PortraitImmersiveLayout(
+                    playbackState = playbackState,
+                    currentShape = currentShape,
+                    accentColor = accentColor,
+                    onPlayPause = onPlayPause,
+                    onSkipPrevious = onSkipPrevious,
+                    onSkipNext = onSkipNext,
+                    onSeek = onSeek
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LandscapeImmersiveLayout(
+    playbackState: MediaPlaybackState,
+    currentShape: ImmersiveShapeStyle,
+    accentColor: Color,
+    onPlayPause: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSeek: (Long) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(36.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Left Column: Album Art with Ambient Glow
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
+        ) {
+            // Ambient radial glow behind album art
+            Box(
+                modifier = Modifier
+                    .size(340.dp)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                accentColor.copy(alpha = 0.40f),
+                                accentColor.copy(alpha = 0.12f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+
+            ArtisticAlbumArt(
+                bitmap = playbackState.albumArt,
+                shape = currentShape,
+                modifier = Modifier.size(280.dp),
+                glowColor = accentColor,
+                contentDescription = playbackState.title.ifEmpty { "Album Artwork" }
+            )
+        }
+
+        // Right Column: Track metadata, squiggly seekbar, controls, output chip
+        Column(
+            modifier = Modifier
+                .weight(1.2f)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = playbackState.title.ifEmpty { "No Media Playing" },
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp
+                ),
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = playbackState.artist.ifEmpty { "StandBy Mode" },
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.7f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            SquigglySeekBar(
+                positionMs = playbackState.positionMs,
+                durationMs = playbackState.durationMs,
+                isPlaying = playbackState.isPlaying,
+                accentColor = accentColor,
+                onSeek = onSeek
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Controls Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.Start),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ScallopButton(
+                    onClick = onSkipPrevious,
+                    size = 56.dp,
+                    backgroundColor = Color.White.copy(alpha = 0.12f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_widget_prev),
+                        contentDescription = "Previous",
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                M3BoldPillButton(
+                    isPlaying = playbackState.isPlaying,
+                    accentColor = accentColor,
+                    onClick = onPlayPause,
+                    width = 112.dp,
+                    height = 58.dp
+                )
+
+                ScallopButton(
+                    onClick = onSkipNext,
+                    size = 56.dp,
+                    backgroundColor = Color.White.copy(alpha = 0.12f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_widget_next),
+                        contentDescription = "Next",
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Output chip
+                AudioOutputChip(packageName = playbackState.packageName, accentColor = accentColor)
+            }
+        }
+    }
+}
+
+@Composable
+fun PortraitImmersiveLayout(
+    playbackState: MediaPlaybackState,
+    currentShape: ImmersiveShapeStyle,
+    accentColor: Color,
+    onPlayPause: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSeek: (Long) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Top: Album Art with Ambient Glow
+        Box(
+            modifier = Modifier
+                .weight(1.3f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            // Ambient glow
+            Box(
+                modifier = Modifier
+                    .size(320.dp)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                accentColor.copy(alpha = 0.40f),
+                                accentColor.copy(alpha = 0.12f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+
+            ArtisticAlbumArt(
+                bitmap = playbackState.albumArt,
+                shape = currentShape,
+                modifier = Modifier.size(260.dp),
+                glowColor = accentColor,
+                contentDescription = playbackState.title.ifEmpty { "Album Artwork" }
+            )
+        }
+
+        // Bottom: Metadata, seekbar, controls, output chip
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                text = playbackState.title.ifEmpty { "No Media Playing" },
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 26.sp
+                ),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = playbackState.artist.ifEmpty { "StandBy Mode" },
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SquigglySeekBar(
+                positionMs = playbackState.positionMs,
+                durationMs = playbackState.durationMs,
+                isPlaying = playbackState.isPlaying,
+                accentColor = accentColor,
+                onSeek = onSeek
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Controls Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ScallopButton(
+                    onClick = onSkipPrevious,
+                    size = 56.dp,
+                    backgroundColor = Color.White.copy(alpha = 0.12f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_widget_prev),
+                        contentDescription = "Previous",
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(28.dp))
+
+                M3BoldPillButton(
+                    isPlaying = playbackState.isPlaying,
+                    accentColor = accentColor,
+                    onClick = onPlayPause,
+                    width = 112.dp,
+                    height = 58.dp
+                )
+
+                Spacer(modifier = Modifier.width(28.dp))
+
+                ScallopButton(
+                    onClick = onSkipNext,
+                    size = 56.dp,
+                    backgroundColor = Color.White.copy(alpha = 0.12f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_widget_next),
+                        contentDescription = "Next",
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            AudioOutputChip(packageName = playbackState.packageName, accentColor = accentColor)
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun AudioOutputChip(
+    packageName: String?,
+    accentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val displayText = when {
+        packageName.isNullOrBlank() -> "Phone Speaker"
+        packageName.contains("spotify", ignoreCase = true) -> "Spotify"
+        packageName.contains("youtube", ignoreCase = true) -> "YouTube Music"
+        packageName.contains("apple", ignoreCase = true) -> "Apple Music"
+        else -> packageName.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+    }
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White.copy(alpha = 0.08f))
+            .border(1.dp, accentColor.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(accentColor)
+        )
+        Text(
+            text = displayText,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.85f),
+            fontWeight = FontWeight.Medium
+        )
+    }
+}

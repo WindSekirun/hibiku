@@ -43,6 +43,14 @@
                 android:resource="@xml/music_widget_2x2_minimal_info" />
         </receiver>
 
+        <receiver
+            android:name=".receiver.PowerConnectionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".ui.config.WidgetConfigurationActivity"
             android:exported="true">
@@ -50,5 +58,11 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.immersive.ImmersivePlayerActivity"
+            android:exported="true"
+            android:screenOrientation="fullSensor"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize" />
     </application>
 </manifest>
