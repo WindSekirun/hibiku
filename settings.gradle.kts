@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MusicWidget"
+rootProject.name = "hibiku"
 include(":app")
 include(":domain")
 include(":core")

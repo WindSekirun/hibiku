@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_4x2_name">Music Widget 4x2</string>
+    <string name="widget_4x2_name">hibiku 4x2</string>
     <string name="widget_4x2_description">Wide widget with circular album art, progress ring, song info, and playback controls.</string>
-    <string name="widget_2x2_standard_name">Music Widget 2x2 Standard</string>
+    <string name="widget_2x2_standard_name">hibiku 2x2 Standard</string>
     <string name="widget_2x2_standard_description">Square widget with circular album art, progress ring, title, and playback controls.</string>
-    <string name="widget_2x2_minimal_name">Music Widget 2x2 Minimal</string>
+    <string name="widget_2x2_minimal_name">hibiku 2x2 Minimal</string>
     <string name="widget_2x2_minimal_description">Minimal square widget featuring prominent circular artwork, progress ring, and controls.</string>
-    <string name="widget_2x2_pure_name">Music Widget 2x2 Pure</string>
+    <string name="widget_2x2_pure_name">hibiku 2x2 Pure</string>
     <string name="widget_2x2_pure_description">Ultra-minimal transparent widget with circular album art and progress ring only.</string>
     <string name="no_music_playing">No music playing</string>
     <string name="unknown_artist">Unknown artist</string>
