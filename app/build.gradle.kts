@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.github.windsekirun.musicwidget"
+    namespace = "io.github.windsekirun.hibiku"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.github.windsekirun.musicwidget"
+        applicationId = "io.github.windsekirun.hibiku"
         minSdk = 36
         targetSdk = 37
         versionCode = 1

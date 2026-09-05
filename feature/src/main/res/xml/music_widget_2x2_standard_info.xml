@@ -11,4 +11,4 @@
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen"
-    android:configure="com.github.windsekirun.musicwidget.feature.ui.config.WidgetConfigurationActivity" />
+    android:configure="io.github.windsekirun.hibiku.feature.ui.config.WidgetConfigurationActivity" />

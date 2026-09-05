@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.github.windsekirun.musicwidget.core"
+    namespace = "io.github.windsekirun.hibiku.core"
     compileSdk {
         version = release(37)
     }
