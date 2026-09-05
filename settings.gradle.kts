@@ -24,3 +24,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "MusicWidget"
 include(":app")
+include(":domain")
+include(":core")
+include(":feature")
+
