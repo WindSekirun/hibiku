@@ -10,6 +10,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -37,6 +40,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,6 +77,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -207,10 +212,22 @@ fun ImmersivePlayerScreen(
     val safePadding = WindowInsets.safeDrawing.asPaddingValues()
 
     var dragYAmount by remember { mutableFloatStateOf(0f) }
+    val animatedOffsetY by animateFloatAsState(
+        targetValue = dragYAmount.coerceAtLeast(0f),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "SwipeToDismissOffset"
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .graphicsLayer {
+                translationY = animatedOffsetY
+                alpha = (1f - (animatedOffsetY / 1000f)).coerceIn(0.2f, 1f)
+            }
             .background(backgroundColor)
             .padding(safePadding)
             .pointerInput(Unit) {
@@ -219,13 +236,14 @@ fun ImmersivePlayerScreen(
                     onDragEnd = {
                         if (dragYAmount > 120.dp.toPx()) {
                             onClose()
+                        } else {
+                            dragYAmount = 0f
                         }
-                        dragYAmount = 0f
                     },
                     onDragCancel = { dragYAmount = 0f },
                     onVerticalDrag = { change, dragAmount ->
                         change.consume()
-                        dragYAmount += dragAmount
+                        dragYAmount = (dragYAmount + dragAmount).coerceAtLeast(0f)
                     }
                 )
             }
@@ -909,7 +927,10 @@ fun QueueBottomSheet(
     onDismiss: () -> Unit
 ) {
     val items = playbackState.queueItems
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
+    val targetSheetHeight = (screenHeightDp * 0.60f).coerceAtLeast(320.dp)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val lazyListState = rememberLazyListState()
 
     val noOverscrollConnection = remember {
         object : NestedScrollConnection {
@@ -918,7 +939,15 @@ fun QueueBottomSheet(
                 available: Offset,
                 source: NestedScrollSource
             ): Offset {
-                // Consume all overscroll deltas so sheet does not bounce or jiggle when scrolling reaches list bounds
+                val isAtTop = lazyListState.firstVisibleItemIndex == 0 &&
+                        lazyListState.firstVisibleItemScrollOffset == 0
+
+                // When at the top of the list and pulling down, let the gesture pass to ModalBottomSheet so it dismisses naturally
+                if (isAtTop && available.y > 0f) {
+                    return Offset.Zero
+                }
+
+                // Consume all other overscroll deltas (e.g. overscroll at bottom) so sheet does not bounce or jiggle
                 return available
             }
         }
@@ -933,7 +962,7 @@ fun QueueBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(440.dp)
+                .height(targetSheetHeight)
                 .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -959,6 +988,7 @@ fun QueueBottomSheet(
 
             if (items.isNotEmpty()) {
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
