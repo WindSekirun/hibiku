@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -24,8 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.isActive
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -329,19 +332,20 @@ fun GalaxyFluidWaveProgressBar(
     thumbBorderColor: Color = Color.White,
     thumbInnerColor: Color = Color(0xFF1E1B2E)
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "FluidWaveTransition")
-    val phase by if (isPlaying) {
-        infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = (2 * Math.PI).toFloat(),
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 2600, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            ),
-            label = "WavePhase"
-        )
-    } else {
-        remember { mutableFloatStateOf(0f) }
+    // 1. [수정] 0~2PI 루프 리셋 제거 -> 단조 증가하는 연속 시간(초) 누적으로 변경
+    val elapsedTimeSeconds = produceState(initialValue = 0f, key1 = isPlaying) {
+        if (!isPlaying) return@produceState
+        var lastFrameTimeNanos = 0L
+        while (isActive) {
+            androidx.compose.animation.core.withInfiniteAnimationFrameMillis { frameTimeMillis ->
+                val currentFrameNanos = frameTimeMillis * 1_000_000L
+                if (lastFrameTimeNanos != 0L) {
+                    val deltaSeconds = (currentFrameNanos - lastFrameTimeNanos) / 1_000_000_000f
+                    value += deltaSeconds * 2.4f
+                }
+                lastFrameTimeNanos = currentFrameNanos
+            }
+        }
     }
 
     val waveLayers = remember(mainColor) {
@@ -419,7 +423,7 @@ fun GalaxyFluidWaveProgressBar(
                     layer = layer,
                     activeWidth = activeWidth,
                     trackY = trackY,
-                    globalPhase = phase
+                    continuousTime = elapsedTimeSeconds.value
                 )
             }
 
@@ -451,11 +455,11 @@ private fun DrawScope.drawSingleWaveLayer(
     layer: DynamicWaveSpec,
     activeWidth: Float,
     trackY: Float,
-    globalPhase: Float
+    continuousTime: Float
 ) {
     val maxAmplitudePx = layer.amplitudeDp.dp.toPx()
     val wavelengthPx = layer.wavelengthDp.dp.toPx()
-    val phase = (globalPhase * layer.speedMultiplier) + layer.phaseOffset
+    val angularFrequency = continuousTime * layer.speedMultiplier
 
     val path = Path().apply {
         moveTo(0f, trackY)
@@ -465,7 +469,9 @@ private fun DrawScope.drawSingleWaveLayer(
 
         while (currentX <= activeWidth) {
             val damp = sin(Math.PI * (currentX / activeWidth)).toFloat()
-            val sineNorm = ((1f + sin((currentX / wavelengthPx) * 2 * Math.PI + phase).toFloat()) / 2f)
+            // [수정] +부호를 -부호로 변경하여 파동 진행 방향을 Thumb(오른쪽) 방향으로 전환
+            val theta = ((currentX / wavelengthPx) * 2 * Math.PI) - angularFrequency + layer.phaseOffset
+            val sineNorm = ((1f + sin(theta).toFloat()) / 2f)
                 .pow(layer.curvatureExponent)
 
             val waveHeight = maxAmplitudePx * damp * sineNorm
