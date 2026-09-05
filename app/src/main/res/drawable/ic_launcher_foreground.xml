@@ -1,30 +1,66 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- Outer Left Semi-Circular Ring (#404859) -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M 54,26 A 28,28 0 1,0 54,82"
+        android:strokeWidth="3.2"
+        android:strokeColor="#4A5268"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- Outer Right Squiggly Wave Ring (#5CB3FF / Electric Cosmic Blue) -->
+    <path
+        android:pathData="M 54,26
+            C 58,26 62,28 66,29
+            C 71,30 76,33 79,37
+            C 83,41 85,46 86,51
+            C 87,56 86,61 84,66
+            C 82,71 78,76 74,79
+            C 69,82 64,83 59,82
+            C 57,82 55.5,82 54,82"
+        android:strokeWidth="3.8"
+        android:strokeColor="#5CB3FF"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- Central Musical Note (#7E8A9E and bright accents) -->
+    <!-- Beam -->
+    <path
+        android:pathData="M 50,42 L 67,39 L 67,45 L 50,48 Z"
+        android:fillColor="#8C98AC" />
+
+    <!-- Left Stem -->
+    <path
+        android:pathData="M 48,42 L 51,42 L 51,63 L 48,63 Z"
+        android:fillColor="#8C98AC" />
+
+    <!-- Right Stem -->
+    <path
+        android:pathData="M 64,39 L 67,39 L 67,59 L 64,59 Z"
+        android:fillColor="#8C98AC" />
+
+    <!-- Left Note Head -->
+    <path
+        android:pathData="M 47,60 A 5,4 0 1,0 47,68 A 5,4 0 1,0 47,60 Z"
+        android:fillColor="#768194" />
+
+    <!-- Right Note Head -->
+    <path
+        android:pathData="M 63,56 A 5,4 0 1,0 63,64 A 5,4 0 1,0 63,56 Z"
+        android:fillColor="#768194" />
+
+    <!-- Inner Hole for Left Note Head -->
+    <path
+        android:pathData="M 47,62 A 2.2,1.8 0 1,0 47,65.6 A 2.2,1.8 0 1,0 47,62 Z"
+        android:fillColor="#212121" />
+
+    <!-- Inner Hole for Right Note Head -->
+    <path
+        android:pathData="M 63,58 A 2.2,1.8 0 1,0 63,61.6 A 2.2,1.8 0 1,0 63,58 Z"
+        android:fillColor="#212121" />
+
 </vector>
