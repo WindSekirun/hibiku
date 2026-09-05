@@ -112,6 +112,7 @@ git commit -m "feat: implement MediaNotificationListenerService and ScreenStateR
 
 **Files:**
 - Create: `app/src/main/java/com/github/windsekirun/musicwidget/ui/graphics/RingStyle.kt`
+- Create: `app/src/main/java/com/github/windsekirun/musicwidget/ui/graphics/M3ShapeStyle.kt`
 - Create: `app/src/main/java/com/github/windsekirun/musicwidget/ui/graphics/WidgetBitmapRenderer.kt`
 - Create: `app/src/test/java/com/github/windsekirun/musicwidget/ui/graphics/WidgetBitmapRendererTest.kt`
 
@@ -230,7 +231,7 @@ git commit -m "feat: implement 4x2 and 2x2 Glance music widgets"
 Create Compose components for preset color chips, Material You dynamic color toggle, and custom HEX input/slider.
 
 - [ ] **Step 2: Implement WidgetConfigurationActivity**
-Add live preview card, ring style selector (horizontal scroll cards showing the 5 styles), color customizer, permission check banner, and save button that updates Glance widget and returns `RESULT_OK`.
+Add live preview card, M3 shape selector (Circle, Squircle, Scallop, Clover, Cut Corner, Arch, Pill), ring style selector (5 styles), color customizer, permission check banner, and save button that updates Glance widget and returns `RESULT_OK`.
 
 - [ ] **Step 3: Register WidgetConfigurationActivity in AndroidManifest.xml**
 Add `ACTION_APPWIDGET_CONFIGURE` intent filter.
