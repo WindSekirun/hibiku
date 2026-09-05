@@ -456,14 +456,6 @@ fun ImmersivePlayerScreen(
             }
         }
 
-        // Modal Bottom Sheet for Audio Output Device Switcher
-        if (isAudioBottomSheetOpen) {
-            AudioOutputBottomSheet(
-                accentColor = accentColor,
-                onDismiss = { isAudioBottomSheetOpen = false }
-            )
-        }
-
         // Modal Bottom Sheet for Playback Queue Info
         if (isQueueBottomSheetOpen) {
             QueueBottomSheet(
@@ -489,9 +481,6 @@ fun ImmersivePlayerScreen(
                     onSkipPrevious = onSkipPrevious,
                     onSkipNext = onSkipNext,
                     onSeek = onSeek,
-                    onToggleShuffle = onToggleShuffle,
-                    onToggleRepeat = onToggleRepeat,
-                    onOpenAudioOutput = { isAudioBottomSheetOpen = true },
                     onOpenQueue = { isQueueBottomSheetOpen = true }
                 )
             } else {
@@ -504,9 +493,6 @@ fun ImmersivePlayerScreen(
                     onSkipPrevious = onSkipPrevious,
                     onSkipNext = onSkipNext,
                     onSeek = onSeek,
-                    onToggleShuffle = onToggleShuffle,
-                    onToggleRepeat = onToggleRepeat,
-                    onOpenAudioOutput = { isAudioBottomSheetOpen = true },
                     onOpenQueue = { isQueueBottomSheetOpen = true }
                 )
             }
@@ -659,17 +645,12 @@ fun LandscapeImmersiveLayout(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Bottom 3-part Row: [Audio Output Icon] --- [App Session Chip] --- [Queue Icon]
+            // Bottom 2-part Row: [App Session Chip] -------- [Queue Icon]
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AudioOutputIconButton(
-                    accentColor = accentColor,
-                    onClick = onOpenAudioOutput
-                )
-
                 AppSessionChip(
                     packageName = playbackState.packageName,
                     accentColor = accentColor
@@ -696,7 +677,6 @@ fun PortraitImmersiveLayout(
     onSeek: (Long) -> Unit,
     onToggleShuffle: () -> Unit = {},
     onToggleRepeat: () -> Unit = {},
-    onOpenAudioOutput: () -> Unit = {},
     onOpenQueue: () -> Unit = {}
 ) {
     Column(
@@ -831,17 +811,12 @@ fun PortraitImmersiveLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Bottom 3-part Row: [Audio Output Icon] --- [App Session Chip] --- [Queue Icon]
+            // Bottom 2-part Row: [App Session Chip] -------- [Queue Icon]
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AudioOutputIconButton(
-                    accentColor = accentColor,
-                    onClick = onOpenAudioOutput
-                )
-
                 AppSessionChip(
                     packageName = playbackState.packageName,
                     accentColor = accentColor
@@ -888,29 +863,6 @@ fun PlaybackModeToggleButton(
             contentDescription = contentDescription,
             tint = iconTint,
             modifier = Modifier.size(20.dp)
-        )
-    }
-}
-
-@Composable
-fun AudioOutputIconButton(
-    accentColor: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier
-            .size(42.dp)
-            .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.08f))
-            .border(1.dp, accentColor.copy(alpha = 0.35f), CircleShape)
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_widget_immersive),
-            contentDescription = "Audio Output Switcher",
-            tint = Color.White.copy(alpha = 0.9f),
-            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -985,89 +937,11 @@ fun QueueIconButton(
             .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_widget_next),
+            painter = painterResource(id = R.drawable.ic_queue_list),
             contentDescription = "Playback Queue",
             tint = Color.White.copy(alpha = 0.9f),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(20.dp)
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AudioOutputBottomSheet(
-    accentColor: Color,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    val audioManager = remember(context) { context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager }
-    val connectedDevices = remember(audioManager) {
-        val outputs = audioManager?.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        outputs?.mapNotNull { dev ->
-            val name = dev.productName.toString()
-            if (name.isNotBlank()) name else null
-        }?.distinct() ?: listOf("Phone Speaker")
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF16181D),
-        scrimColor = Color.Black.copy(alpha = 0.6f)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "오디오 출력 장치 선택",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                connectedDevices.forEach { devName ->
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color.White.copy(alpha = 0.08f),
-                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                val intent = Intent("com.android.settings.panel.action.MEDIA_OUTPUT").apply {
-                                    putExtra("com.android.settings.panel.extra.PACKAGE_NAME", context.packageName)
-                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                }
-                                runCatching { context.startActivity(intent) }
-                                onDismiss()
-                            }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(accentColor)
-                            )
-                            Text(
-                                text = devName,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -1078,6 +952,8 @@ fun QueueBottomSheet(
     accentColor: Color,
     onDismiss: () -> Unit
 ) {
+    val items = playbackState.queueItems
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF16181D),
@@ -1109,44 +985,112 @@ fun QueueBottomSheet(
                 )
             }
 
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = Color.White.copy(alpha = 0.08f),
-                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(accentColor)
-                    )
+                if (items.isNotEmpty()) {
+                    items.forEachIndexed { index, queueItem ->
+                        val isCurrent = (index == playbackState.queueIndex - 1) ||
+                                (queueItem.title == playbackState.title)
+                        val cardBorder = if (isCurrent) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                        val cardBg = if (isCurrent) accentColor.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f)
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = playbackState.title.ifEmpty { "No Media Playing" },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = playbackState.artist.ifEmpty { "StandBy Mode" },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = cardBg,
+                            border = cardBorder,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    text = "${index + 1}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isCurrent) accentColor else Color.White.copy(alpha = 0.5f),
+                                    modifier = Modifier.width(28.dp),
+                                    textAlign = TextAlign.Center
+                                )
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = queueItem.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (queueItem.artist.isNotBlank()) {
+                                        Text(
+                                            text = queueItem.artist,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color.White.copy(alpha = 0.65f),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+
+                                if (isCurrent) {
+                                    Text(
+                                        text = "NOW PLAYING",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = accentColor
+                                    )
+                                }
+                            }
+                        }
                     }
+                } else {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(CircleShape)
+                                    .background(accentColor)
+                            )
 
-                    Text(
-                        text = "NOW PLAYING",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor
-                    )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = playbackState.title.ifEmpty { "No Media Playing" },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = playbackState.artist.ifEmpty { "StandBy Mode" },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.7f)
+                                )
+                            }
+
+                            Text(
+                                text = "NOW PLAYING",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor
+                            )
+                        }
+                    }
                 }
             }
         }
