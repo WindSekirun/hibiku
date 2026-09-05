@@ -115,9 +115,7 @@ class ImmersivePlayerActivity : ComponentActivity() {
                 onPlayPause = { MediaPlaybackRepository.playPause() },
                 onSkipPrevious = { MediaPlaybackRepository.skipToPrevious() },
                 onSkipNext = { MediaPlaybackRepository.skipToNext() },
-                onSeek = { MediaPlaybackRepository.seekTo(it) },
-                onToggleShuffle = { MediaPlaybackRepository.toggleShuffle() },
-                onToggleRepeat = { MediaPlaybackRepository.toggleRepeat() }
+                onSeek = { MediaPlaybackRepository.seekTo(it) }
             )
         }
     }
@@ -158,8 +156,6 @@ fun ImmersivePlayerScreen(
     onSkipPrevious: () -> Unit,
     onSkipNext: () -> Unit,
     onSeek: (Long) -> Unit,
-    onToggleShuffle: () -> Unit = {},
-    onToggleRepeat: () -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -937,7 +933,8 @@ fun QueueBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
+                .height(440.dp)
+                .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -964,7 +961,7 @@ fun QueueBottomSheet(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f, fill = false)
+                        .weight(1f)
                         .nestedScroll(noOverscrollConnection),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -1143,8 +1140,6 @@ fun ImmersivePlayerLandscapePreview() {
             onSkipPrevious = {},
             onSkipNext = {},
             onSeek = {},
-            onToggleShuffle = {},
-            onToggleRepeat = {}
         )
     }
 }
