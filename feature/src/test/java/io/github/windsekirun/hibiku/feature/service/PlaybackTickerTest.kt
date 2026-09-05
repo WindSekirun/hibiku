@@ -74,28 +74,7 @@ class PlaybackTickerTest {
     }
 
     @Test
-    fun ticker_doesNotStartWhenScreenOff() {
-        repository.updatePlaybackState(
-            MediaPlaybackState(
-                isPlaying = true,
-                positionMs = 1_000L,
-                durationMs = 100_000L
-            )
-        )
-
-        val ticker = PlaybackTicker(
-            repository = repository,
-            coroutineScope = testScope,
-            dispatcher = Dispatchers.Unconfined
-        )
-
-        ticker.setScreenOn(false)
-
-        assertFalse("Ticker should not run when screen is off", ticker.isRunning)
-    }
-
-    @Test
-    fun ticker_stopsWhenScreenTurnsOff() {
+    fun ticker_runsWhenPlaying() {
         repository.updatePlaybackState(
             MediaPlaybackState(
                 isPlaying = true,
@@ -111,108 +90,12 @@ class PlaybackTickerTest {
         )
 
         ticker.evaluate()
-        assertTrue(ticker.isRunning)
 
-        ticker.setScreenOn(false)
-        assertFalse("Ticker should stop when screen turns off", ticker.isRunning)
+        assertTrue("Ticker should run when music is playing", ticker.isRunning)
     }
 
     @Test
-    fun ticker_stopsWhenPlaybackPauses() {
-        repository.updatePlaybackState(
-            MediaPlaybackState(
-                isPlaying = true,
-                positionMs = 1_000L,
-                durationMs = 100_000L
-            )
-        )
-
-        val ticker = PlaybackTicker(
-            repository = repository,
-            coroutineScope = testScope,
-            dispatcher = Dispatchers.Unconfined
-        )
-
-        ticker.evaluate()
-        assertTrue(ticker.isRunning)
-
-        repository.updatePlaybackState(
-            repository.playbackState.value.copy(isPlaying = false)
-        )
-        ticker.onPlaybackStateChanged()
-
-        assertFalse("Ticker should stop when playback is paused", ticker.isRunning)
-    }
-
-    @Test
-    fun ticker_resumesWhenScreenTurnsBackOn() {
-        repository.updatePlaybackState(
-            MediaPlaybackState(
-                isPlaying = true,
-                positionMs = 1_000L,
-                durationMs = 100_000L
-            )
-        )
-
-        val ticker = PlaybackTicker(
-            repository = repository,
-            coroutineScope = testScope,
-            dispatcher = Dispatchers.Unconfined
-        )
-
-        ticker.setScreenOn(false)
-        assertFalse(ticker.isRunning)
-
-        ticker.setScreenOn(true)
-        assertTrue("Ticker should resume when screen turns back on while playing", ticker.isRunning)
-    }
-
-    @Test
-    fun tick_advancesPositionByInterval() {
-        repository.updatePlaybackState(
-            MediaPlaybackState(
-                isPlaying = true,
-                positionMs = 5_000L,
-                durationMs = 180_000L
-            )
-        )
-
-        val ticker = PlaybackTicker(
-            repository = repository,
-            coroutineScope = testScope,
-            dispatcher = Dispatchers.Unconfined,
-            tickIntervalMs = 1_000L
-        )
-
-        ticker.tick()
-
-        assertEquals(6_000L, repository.playbackState.value.positionMs)
-    }
-
-    @Test
-    fun tick_clampsToDuration() {
-        repository.updatePlaybackState(
-            MediaPlaybackState(
-                isPlaying = true,
-                positionMs = 179_500L,
-                durationMs = 180_000L
-            )
-        )
-
-        val ticker = PlaybackTicker(
-            repository = repository,
-            coroutineScope = testScope,
-            dispatcher = Dispatchers.Unconfined,
-            tickIntervalMs = 1_000L
-        )
-
-        ticker.tick()
-
-        assertEquals(180_000L, repository.playbackState.value.positionMs)
-    }
-
-    @Test
-    fun tick_doesNotAdvanceWhenPausedOrScreenOff() {
+    fun tick_doesNotAdvanceWhenPaused() {
         repository.updatePlaybackState(
             MediaPlaybackState(
                 isPlaying = false,
@@ -227,13 +110,6 @@ class PlaybackTickerTest {
             dispatcher = Dispatchers.Unconfined
         )
 
-        ticker.tick()
-        assertEquals(5_000L, repository.playbackState.value.positionMs)
-
-        repository.updatePlaybackState(
-            repository.playbackState.value.copy(isPlaying = true)
-        )
-        ticker.setScreenOn(false)
         ticker.tick()
         assertEquals(5_000L, repository.playbackState.value.positionMs)
     }

@@ -49,7 +49,16 @@ fun resolveWidgetConfigAndColor(
     }.getOrDefault(-1)
 
     val prefs = WidgetPreferencesRepository(context)
-    val config = prefs.loadConfig(appWidgetId)
+    val config = if (appWidgetId != -1) {
+        prefs.loadConfig(appWidgetId)
+    } else {
+        val configuredIds = prefs.getAllConfiguredWidgetIds()
+        if (configuredIds.isNotEmpty()) {
+            prefs.loadConfig(configuredIds.last())
+        } else {
+            WidgetConfig()
+        }
+    }
 
     val defaultColor = runCatching {
         config.borderColorHex.toColorInt()
@@ -75,8 +84,9 @@ fun WidgetBackground(
     content: @Composable () -> Unit
 ) {
     val size = LocalSize.current
-    val wPx = minOf((size.width.value * density).toInt(), 400).coerceAtLeast(64)
-    val hPx = minOf((size.height.value * density).toInt(), 300).coerceAtLeast(64)
+    // Optimize bitmap dimensions to stay well within Android's 1MB Binder IPC transaction limit
+    val wPx = minOf((size.width.value * density).toInt(), 160).coerceAtLeast(64)
+    val hPx = minOf((size.height.value * density).toInt(), 120).coerceAtLeast(48)
     val cornerRadiusPx = cornerRadiusDp.value * density
 
     val bgBitmap = remember(artwork, wPx, hPx, accentColor, useBlurBackground) {
@@ -131,7 +141,8 @@ fun WidgetArtworkRing(
     modifier: GlanceModifier = GlanceModifier,
     onClick: Action = actionRunCallback<LaunchPlayerActionCallback>()
 ) {
-    val sizePx = (sizeDp.value * density).toInt().coerceAtLeast(32)
+    // Optimize ring bitmap dimensions (max 180px) for Binder IPC memory safety
+    val sizePx = minOf((sizeDp.value * density).toInt(), 180).coerceAtLeast(32)
     val artBitmap = remember(artwork, progress, isPlaying, ringStyle, ringColor, sizePx) {
         WidgetBitmapRenderer.renderArtworkWithRing(
             artwork = artwork,

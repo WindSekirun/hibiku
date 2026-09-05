@@ -11,6 +11,7 @@ import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Bundle
 import android.os.PowerManager
+import android.os.SystemClock
 import android.service.notification.NotificationListenerService
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -228,6 +229,23 @@ class MediaNotificationListenerService : NotificationListenerService() {
         activeController = null
     }
 
+    private fun calculateRealtimePosition(playbackState: PlaybackState?): Long {
+        if (playbackState == null) return 0L
+        val rawPosition = playbackState.position
+        if (playbackState.state != PlaybackState.STATE_PLAYING) {
+            return rawPosition.coerceAtLeast(0L)
+        }
+        val updateTime = playbackState.lastPositionUpdateTime
+        if (updateTime > 0) {
+            val elapsed = SystemClock.elapsedRealtime() - updateTime
+            if (elapsed > 0) {
+                val speed = if (playbackState.playbackSpeed > 0f) playbackState.playbackSpeed else 1.0f
+                return (rawPosition + (elapsed * speed).toLong()).coerceAtLeast(0L)
+            }
+        }
+        return rawPosition.coerceAtLeast(0L)
+    }
+
     private fun updatePlaybackFromController(controller: MediaController) {
         val playbackState = controller.playbackState
         val metadata = controller.metadata
@@ -251,8 +269,8 @@ class MediaNotificationListenerService : NotificationListenerService() {
             ?: metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART)
         val durationMs = metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
 
-        val rawPosition = playbackState?.position ?: 0L
-        val positionMs = if (rawPosition >= 0L) rawPosition else 0L
+        val realPosition = calculateRealtimePosition(playbackState)
+        val positionMs = if (durationMs > 0L) realPosition.coerceAtMost(durationMs) else realPosition
 
         val queue = runCatching { controller.queue }.getOrNull()
         val activeQueueId = playbackState?.activeQueueItemId

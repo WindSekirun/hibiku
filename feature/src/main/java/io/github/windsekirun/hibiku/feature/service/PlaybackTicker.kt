@@ -44,7 +44,7 @@ class PlaybackTicker(
 
     fun evaluate() {
         val state = repository.playbackState.value
-        val shouldRun = isScreenOn && state.isPlaying
+        val shouldRun = state.isPlaying
 
         if (shouldRun) {
             if (tickerJob?.isActive != true) {
@@ -57,7 +57,7 @@ class PlaybackTicker(
 
     fun tick() {
         val state = repository.playbackState.value
-        if (state.isPlaying && isScreenOn) {
+        if (state.isPlaying) {
             val newPosition = if (state.durationMs > 0L) {
                 (state.positionMs + tickIntervalMs).coerceAtMost(state.durationMs)
             } else {
@@ -74,7 +74,7 @@ class PlaybackTicker(
             while (true) {
                 delayProvider(tickIntervalMs)
                 val state = repository.playbackState.value
-                if (!state.isPlaying || !isScreenOn) {
+                if (!state.isPlaying) {
                     break
                 }
                 tick()
