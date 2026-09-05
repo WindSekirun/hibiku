@@ -36,7 +36,7 @@ class MusicWidget2x2Pure : GlanceAppWidget() {
             val density = context.resources.displayMetrics.density
 
             androidx.compose.runtime.key(
-                playbackState.albumArt == null,
+                playbackState.albumArt?.generationId ?: 0,
                 playbackState.title,
                 playbackState.artist,
                 playbackState.isPlaying,

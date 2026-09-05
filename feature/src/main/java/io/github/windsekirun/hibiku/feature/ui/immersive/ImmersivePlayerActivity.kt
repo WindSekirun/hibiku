@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
+import io.github.windsekirun.hibiku.feature.widget.WidgetUpdateHelper
 
 class ImmersivePlayerActivity : ComponentActivity() {
 
@@ -28,8 +29,16 @@ class ImmersivePlayerActivity : ComponentActivity() {
                 onPlayPause = { MediaPlaybackRepository.playPause() },
                 onSkipPrevious = { MediaPlaybackRepository.skipToPrevious() },
                 onSkipNext = { MediaPlaybackRepository.skipToNext() },
-                onSeek = { MediaPlaybackRepository.seekTo(it) }
+                onSeek = {
+                    MediaPlaybackRepository.seekTo(it)
+                    WidgetUpdateHelper.updateAllWidgets(this)
+                }
             )
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        WidgetUpdateHelper.updateAllWidgets(this)
     }
 }

@@ -5,44 +5,29 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.windsekirun.hibiku.feature.R
 
 data class ColorPreset(
@@ -183,123 +168,6 @@ fun ColorPickerComponents(
     }
 }
 
-@Composable
-fun ColorSwatchChip(
-    preset: ColorPreset,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val borderColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-    }
-
-    val borderWidth = if (isSelected) 3.dp else 1.dp
-    val checkmarkTint = if (preset.hex.equals("#FFFFFF", ignoreCase = true) ||
-        preset.hex.equals("#FAD02C", ignoreCase = true)) {
-        Color.Black
-    } else {
-        Color.White
-    }
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .clickable(onClick = onClick)
-            .padding(vertical = 4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(preset.color)
-                .border(borderWidth, borderColor, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = checkmarkTint,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = preset.name.split(" ").last(),
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = 11.sp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-fun CustomHexInputField(
-    colorHex: String,
-    onColorHexChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var textInput by remember(colorHex) {
-        mutableStateOf(if (colorHex.startsWith("#")) colorHex else "#$colorHex")
-    }
-
-    val parsedColor = remember(textInput) { parseColorOrNull(textInput) }
-    val isValid = isValidHexColor(textInput)
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.config_custom_hex),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        OutlinedTextField(
-            value = textInput,
-            onValueChange = { input ->
-                val filtered = input.filter { it == '#' || it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
-                    .take(9)
-                textInput = filtered
-                if (isValidHexColor(filtered)) {
-                    onColorHexChange(normalizeHex(filtered))
-                }
-            },
-            singleLine = true,
-            isError = !isValid && textInput.isNotBlank(),
-            label = { Text(stringResource(R.string.config_custom_hex)) },
-            placeholder = { Text(stringResource(R.string.config_custom_hex_hint)) },
-            supportingText = {
-                if (!isValid && textInput.isNotBlank()) {
-                    Text(
-                        text = stringResource(R.string.config_custom_hex_error),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                } else {
-                    Text(stringResource(R.string.config_custom_hex_helper))
-                }
-            },
-            leadingIcon = {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(parsedColor ?: Color.Transparent)
-                        .border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        )
-    }
-}
-
 // -------------------------------------------------------------------------
 // Compose UI Previews
 // -------------------------------------------------------------------------
@@ -331,4 +199,3 @@ fun ColorPickerComponentsCustomPreview() {
         )
     }
 }
-

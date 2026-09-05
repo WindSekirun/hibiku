@@ -1,32 +1,20 @@
 package io.github.windsekirun.hibiku.feature.ui.immersive
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -34,12 +22,10 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.windsekirun.hibiku.feature.R
@@ -227,174 +213,15 @@ fun ArtisticAlbumArt(
     }
 }
 
+@Preview(name = "Artistic Album Art Preview", showBackground = true, backgroundColor = 0xFF0B0C0E)
 @Composable
-fun VinylOverlay() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val center = Offset(size.width / 2f, size.height / 2f)
-        val maxRadius = size.minDimension / 2f
-
-        // Concentric vinyl groove rings
-        val grooveFractions = listOf(0.92f, 0.85f, 0.78f, 0.70f, 0.62f, 0.55f, 0.47f, 0.40f)
-        for (fraction in grooveFractions) {
-            drawCircle(
-                color = Color.White.copy(alpha = 0.07f),
-                radius = maxRadius * fraction,
-                center = center,
-                style = Stroke(width = 1.2f)
-            )
-        }
-
-        // Center vinyl label border
-        drawCircle(
-            color = Color.Black.copy(alpha = 0.5f),
-            radius = maxRadius * 0.32f,
-            center = center
-        )
-        drawCircle(
-            color = Color.White.copy(alpha = 0.2f),
-            radius = maxRadius * 0.32f,
-            center = center,
-            style = Stroke(width = 1.5f)
-        )
-
-        // Center spindle hole
-        drawCircle(
-            color = Color(0xFF0B0C0E),
-            radius = maxRadius * 0.08f,
-            center = center
+fun ArtisticAlbumArtPreview() {
+    MaterialTheme {
+        ArtisticAlbumArt(
+            bitmap = null,
+            shape = ImmersiveShapeStyle.SCALLOP,
+            modifier = Modifier.size(200.dp),
+            glowColor = Color(0xFF5CB3FF)
         )
     }
 }
-
-@Composable
-fun ScallopButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    size: Dp = 56.dp,
-    backgroundColor: Color = Color.White.copy(alpha = 0.12f),
-    contentColor: Color = Color.White,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .clip(ScallopShape(12))
-            .background(backgroundColor)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            color = Color.Transparent,
-            contentColor = contentColor
-        ) {
-            content()
-        }
-    }
-}
-
-@Composable
-fun M3BoldPillButton(
-    isPlaying: Boolean,
-    accentColor: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    width: Dp = 104.dp,
-    height: Dp = 60.dp
-) {
-    val iconRes = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-
-    Box(
-        modifier = modifier
-            .width(width)
-            .height(height)
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(percent = 50), spotColor = accentColor)
-            .clip(RoundedCornerShape(percent = 50))
-            .background(accentColor)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = if (isPlaying) "Pause" else "Play",
-            tint = Color(0xFF0B0C0E),
-            modifier = Modifier.size(32.dp)
-        )
-    }
-}
-
-@Composable
-fun ShapePreviewCard(
-    style: ImmersiveShapeStyle,
-    isSelected: Boolean,
-    accentColor: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    bitmap: Bitmap? = null
-) {
-    val targetShape = getShapeForStyle(style)
-    val cardBg = if (isSelected) accentColor.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.08f)
-    val borderColor = if (isSelected) accentColor else Color.White.copy(alpha = 0.15f)
-
-    Surface(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .border(
-                width = if (isSelected) 2.dp else 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(onClick = onClick),
-        color = cardBg,
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(targetShape)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                accentColor.copy(alpha = 0.65f),
-                                Color(0xFF252932),
-                                Color(0xFF13151A)
-                            )
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                if (bitmap != null && !bitmap.isRecycled) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_widget_play),
-                        contentDescription = null,
-                        tint = if (isSelected) accentColor else Color.White.copy(alpha = 0.75f),
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                if (style == ImmersiveShapeStyle.VINYL) {
-                    VinylOverlay()
-                }
-            }
-
-            Text(
-                text = style.label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) accentColor else Color.White
-            )
-        }
-    }
-}
-
