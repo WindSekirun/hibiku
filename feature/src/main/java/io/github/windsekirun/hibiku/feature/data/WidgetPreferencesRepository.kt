@@ -12,6 +12,12 @@ enum class SeekBarStyle(val label: String) {
     FLUID_WAVE("플루이드 웨이브")
 }
 
+enum class ImmersiveThemeMode(val label: String) {
+    DARK("다크 모드"),
+    LIGHT("라이트 모드"),
+    SYSTEM("시스템 따라감")
+}
+
 /**
  * Repository responsible for persisting and retrieving per-widget configurations.
  */
@@ -114,6 +120,8 @@ class WidgetPreferencesRepository(
         const val PREFS_NAME = "music_widget_preferences"
         const val KEY_IMMERSIVE_SHAPE = "immersive_shape_style"
         const val KEY_SEEK_BAR_STYLE = "immersive_seek_bar_style"
+        const val KEY_IMMERSIVE_THEME = "immersive_theme_mode"
+        const val KEY_AUTO_LAUNCH_CHARGING = "auto_launch_charging"
 
         private val keyRegex = Regex("""^widget_(-?\d+)_.+""")
 
@@ -169,5 +177,30 @@ class WidgetPreferencesRepository(
         return name?.let {
             runCatching { SeekBarStyle.valueOf(it) }.getOrNull()
         } ?: SeekBarStyle.WAVY
+    }
+
+    /**
+     * Saves and retrieves Immersive Player theme mode (Dark / Light / Follow System).
+     */
+    fun saveImmersiveThemeMode(mode: ImmersiveThemeMode) {
+        preferences.edit().putString(KEY_IMMERSIVE_THEME, mode.name).apply()
+    }
+
+    fun getImmersiveThemeMode(): ImmersiveThemeMode {
+        val name = preferences.getString(KEY_IMMERSIVE_THEME, null)
+        return name?.let {
+            runCatching { ImmersiveThemeMode.valueOf(it) }.getOrNull()
+        } ?: ImmersiveThemeMode.DARK
+    }
+
+    /**
+     * Saves and retrieves auto-launch Immersive StandBy Player on charging preference.
+     */
+    fun saveAutoLaunchOnCharging(enabled: Boolean) {
+        preferences.edit().putBoolean(KEY_AUTO_LAUNCH_CHARGING, enabled).apply()
+    }
+
+    fun isAutoLaunchOnChargingEnabled(): Boolean {
+        return preferences.getBoolean(KEY_AUTO_LAUNCH_CHARGING, true)
     }
 }

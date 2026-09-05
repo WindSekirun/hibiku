@@ -7,6 +7,9 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -124,13 +127,15 @@ class WidgetConfigurationActivity : ComponentActivity() {
 
     private fun saveAndApply(config: WidgetConfig) {
         repository.saveConfig(appWidgetId, config)
-        WidgetUpdateHelper.updateAllWidgets(this)
-
-        val resultValue = Intent().apply {
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        val appContext = applicationContext
+        CoroutineScope(Dispatchers.Main.immediate).launch {
+            WidgetUpdateHelper.updateAllWidgetsSuspend(appContext)
+            val resultValue = Intent().apply {
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            setResult(RESULT_OK, resultValue)
+            finish()
         }
-        setResult(RESULT_OK, resultValue)
-        finish()
     }
 }
 
