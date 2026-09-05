@@ -246,7 +246,39 @@ git commit -m "feat: implement WidgetConfigurationActivity with live preview and
 
 ---
 
-### Task 8: Landscape Immersive StandBy Player Mode
+### Task 8: Responsive Immersive StandBy Player (Portrait & Landscape with Sensor Override)
+
+**Files:**
+- Create: `app/src/main/java/com/github/windsekirun/musicwidget/ui/immersive/ImmersivePlayerActivity.kt`
+- Create: `app/src/main/java/com/github/windsekirun/musicwidget/ui/immersive/SquigglySeekBar.kt`
+- Create: `app/src/main/java/com/github/windsekirun/musicwidget/ui/immersive/ArtisticAlbumMasks.kt`
+- Create: `app/src/main/java/com/github/windsekirun/musicwidget/receiver/PowerConnectionReceiver.kt`
+- Modify: `app/src/main/AndroidManifest.xml`
+
+**Interfaces:**
+- Consumes: `MediaPlaybackRepository`
+- Produces: Fullscreen responsive (Landscape & Portrait) StandBy player activity with sensor rotation override
+
+- [ ] **Step 1: Implement SquigglySeekBar and ArtisticAlbumMasks Compose components**
+Render interactive sine-wave progress seekbar and artistic album mask shapes (Figure-8, Morphing Pebble, Vinyl, Squircle).
+
+- [ ] **Step 2: Implement ImmersivePlayerActivity with Full Sensor Rotation**
+Configure `requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR` so the activity unlocks and follows the physical device orientation even if system auto-rotate is locked. Adapt layout smoothly between Landscape (side-by-side) and Portrait (vertical stack).
+
+- [ ] **Step 3: Implement PowerConnectionReceiver for StandBy auto-trigger**
+Listen for `ACTION_POWER_CONNECTED` and orientation changes; if music is playing and device is placed horizontally, automatically launch `ImmersivePlayerActivity`.
+
+- [ ] **Step 4: Register Activity and Receiver in AndroidManifest.xml**
+Configure `android:screenOrientation="fullSensor"` and window flags.
+
+- [ ] **Step 5: Verify build**
+Run: `./gradlew assembleDebug`
+
+- [ ] **Step 6: Commit**
+```bash
+git add app/src/main/java/com/github/windsekirun/musicwidget/ui/immersive/ app/src/main/java/com/github/windsekirun/musicwidget/receiver/PowerConnectionReceiver.kt app/src/main/AndroidManifest.xml
+git commit -m "feat: implement responsive ImmersivePlayerActivity with full-sensor rotation override"
+```
 
 **Files:**
 - Create: `app/src/main/java/com/github/windsekirun/musicwidget/ui/immersive/ImmersivePlayerActivity.kt`
