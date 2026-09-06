@@ -80,9 +80,10 @@ object WidgetUpdateHelper {
             for (id in ids4x2) {
                 try {
                     val glanceId = glanceManager.getGlanceIdBy(id)
-                    val rv = widget.compose(context, glanceId)
+                    val options = appWidgetManager.getAppWidgetOptions(id)
+                    val rv = widget.compose(context, glanceId, options = options)
                     appWidgetManager.updateAppWidget(id, rv)
-                    Log.d(TAG, "[WIDGET_PIPELINE] Phase 4 -> MusicWidget4x2.compose id=$id applied immediately")
+                    Log.d(TAG, "[WIDGET_PIPELINE] Phase 4 -> MusicWidget4x2.compose id=$id applied immediately with options")
                 } catch (e: Exception) {
                     Log.e(TAG, "[WIDGET_PIPELINE] Direct compose failed for MusicWidget4x2 id=$id", e)
                 }
@@ -97,9 +98,10 @@ object WidgetUpdateHelper {
             for (id in ids2x2Std) {
                 try {
                     val glanceId = glanceManager.getGlanceIdBy(id)
-                    val rv = widget.compose(context, glanceId)
+                    val options = appWidgetManager.getAppWidgetOptions(id)
+                    val rv = widget.compose(context, glanceId, options = options)
                     appWidgetManager.updateAppWidget(id, rv)
-                    Log.d(TAG, "[WIDGET_PIPELINE] Phase 4 -> MusicWidget2x2Standard.compose id=$id applied immediately")
+                    Log.d(TAG, "[WIDGET_PIPELINE] Phase 4 -> MusicWidget2x2Standard.compose id=$id applied immediately with options")
                 } catch (e: Exception) {
                     Log.e(TAG, "[WIDGET_PIPELINE] Direct compose failed for MusicWidget2x2Standard id=$id", e)
                 }
@@ -114,9 +116,10 @@ object WidgetUpdateHelper {
             for (id in ids2x2Pure) {
                 try {
                     val glanceId = glanceManager.getGlanceIdBy(id)
-                    val rv = widget.compose(context, glanceId)
+                    val options = appWidgetManager.getAppWidgetOptions(id)
+                    val rv = widget.compose(context, glanceId, options = options)
                     appWidgetManager.updateAppWidget(id, rv)
-                    Log.d(TAG, "[WIDGET_PIPELINE] Phase 4 -> MusicWidget2x2Pure.compose id=$id applied immediately")
+                    Log.d(TAG, "[WIDGET_PIPELINE] Phase 4 -> MusicWidget2x2Pure.compose id=$id applied immediately with options")
                 } catch (e: Exception) {
                     Log.e(TAG, "[WIDGET_PIPELINE] Direct compose failed for MusicWidget2x2Pure id=$id", e)
                 }
