@@ -15,7 +15,7 @@ class PlayPauseActionCallback : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        Log.i("WidgetActions", "[PlayPauseActionCallback] clicked, glanceId=$glanceId")
+        Log.i("WidgetActions", "[WIDGET_PIPELINE] Phase 1: Clicked PlayPauseActionCallback, glanceId=$glanceId")
         MediaPlaybackRepository.playPause()
         WidgetUpdateHelper.updateAllWidgets(context)
     }
@@ -27,7 +27,7 @@ class NextActionCallback : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        Log.i("WidgetActions", "[NextActionCallback] clicked, glanceId=$glanceId")
+        Log.i("WidgetActions", "[WIDGET_PIPELINE] Phase 1: Clicked NextActionCallback, glanceId=$glanceId")
         MediaPlaybackRepository.skipToNext()
         WidgetUpdateHelper.updateAllWidgets(context)
     }
@@ -39,7 +39,7 @@ class PrevActionCallback : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        Log.i("WidgetActions", "[PrevActionCallback] clicked, glanceId=$glanceId")
+        Log.i("WidgetActions", "[WIDGET_PIPELINE] Phase 1: Clicked PrevActionCallback, glanceId=$glanceId")
         MediaPlaybackRepository.skipToPrevious()
         WidgetUpdateHelper.updateAllWidgets(context)
     }

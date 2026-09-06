@@ -600,7 +600,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
                 current.albumArt != albumArt ||
                 current.packageName != controller.packageName
 
-        Log.i(TAG, "[updatePlaybackFromController] pkg=${controller.packageName}, isPlaying=$isPlaying, title='$title', artist='$artist', hasChanged=$hasChanged, force=$forceWidgetUpdate, hasArt=${albumArt != null}")
+        Log.i(TAG, "[WIDGET_PIPELINE] Phase 2: updatePlaybackState pkg=${controller.packageName}, isPlaying=$isPlaying, title='$title', artist='$artist', hasChanged=$hasChanged, force=$forceWidgetUpdate")
 
         MediaPlaybackRepository.updatePlaybackState(state)
         if (hasChanged || forceWidgetUpdate) {

@@ -35,6 +35,11 @@ class MusicWidget2x2Pure : GlanceAppWidget() {
             val (config, accentColor) = resolveWidgetConfigAndColor(context, id, playbackState.albumArt)
             val density = context.resources.displayMetrics.density
 
+            android.util.Log.i(
+                "MusicWidget2x2Pure",
+                "[WIDGET_PIPELINE] Phase 5: provideGlance id=$id, title='${playbackState.title}', artist='${playbackState.artist}', isPlaying=${playbackState.isPlaying}"
+            )
+
             androidx.compose.runtime.key(
                 playbackState.albumArt?.generationId ?: 0,
                 playbackState.title,
