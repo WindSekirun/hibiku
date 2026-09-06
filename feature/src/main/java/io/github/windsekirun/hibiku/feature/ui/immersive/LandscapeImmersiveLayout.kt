@@ -188,7 +188,6 @@ fun LandscapeImmersiveLayout(
                 )
 
                 QueueIconButton(
-                    accentColor = accentColor,
                     isDarkMode = isDarkMode,
                     onClick = onOpenQueue
                 )

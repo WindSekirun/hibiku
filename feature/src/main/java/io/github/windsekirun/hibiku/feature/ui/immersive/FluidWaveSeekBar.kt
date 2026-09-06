@@ -59,8 +59,7 @@ fun FluidWaveSeekBar(
             mainColor = accentColor,
             isPlaying = isPlaying,
             inactiveTrackColor = inactiveColor,
-            thumbBorderColor = thumbBorder,
-            thumbInnerColor = thumbInner
+            thumbBorderColor = thumbBorder
         )
 
         Row(

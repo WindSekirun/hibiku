@@ -18,7 +18,6 @@ import io.github.windsekirun.hibiku.feature.R
 
 @Composable
 fun QueueIconButton(
-    accentColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isDarkMode: Boolean = true
@@ -49,7 +48,6 @@ fun QueueIconButton(
 fun QueueIconButtonPreview() {
     MaterialTheme {
         QueueIconButton(
-            accentColor = Color(0xFF5CB3FF),
             onClick = {}
         )
     }

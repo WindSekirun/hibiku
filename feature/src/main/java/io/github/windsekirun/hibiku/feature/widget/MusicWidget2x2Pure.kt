@@ -75,9 +75,6 @@ fun MusicWidget2x2PureContent(
         // Pure transparent: Only circular artwork + progress ring
         WidgetArtworkRing(
             artwork = playbackState.albumArt,
-            progress = playbackState.progress,
-            isPlaying = playbackState.isPlaying,
-            ringStyle = config.ringStyle,
             ringColor = accentColor,
             sizeDp = artworkSizeDp,
             density = density

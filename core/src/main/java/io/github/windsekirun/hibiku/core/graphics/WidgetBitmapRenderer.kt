@@ -4,12 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.graphics.RectF
-import io.github.windsekirun.hibiku.domain.model.RingStyle
 
 object WidgetBitmapRenderer {
 
@@ -84,11 +82,7 @@ object WidgetBitmapRenderer {
 
     fun renderArtworkWithRing(
         artwork: Bitmap?,
-        progress: Float,
-        isPlaying: Boolean,
-        ringStyle: RingStyle,
         ringColor: Int,
-        trackColor: Int = 0x33FFFFFF,
         sizePx: Int = 200
     ): Bitmap {
         return renderArtworkWithBorder(

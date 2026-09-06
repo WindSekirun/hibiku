@@ -42,8 +42,7 @@ fun GalaxyFluidWaveProgressBar(
     mainColor: Color = Color(0xFFD500F9),
     isPlaying: Boolean = true,
     inactiveTrackColor: Color = Color.White.copy(alpha = 0.25f),
-    thumbBorderColor: Color = Color.White,
-    thumbInnerColor: Color = Color(0xFF1E1B2E)
+    thumbBorderColor: Color = Color.White
 ) {
     val elapsedTimeSeconds = produceState(initialValue = 0f, key1 = isPlaying) {
         if (!isPlaying) return@produceState

@@ -66,11 +66,7 @@ fun RingStylePickerRow(
             val miniBitmap = remember(option.style, previewSizePx) {
                 WidgetBitmapRenderer.renderArtworkWithRing(
                     artwork = null,
-                    progress = 0.65f,
-                    isPlaying = true,
-                    ringStyle = option.style,
                     ringColor = 0xFF5CB3FF.toInt(),
-                    trackColor = 0x33FFFFFF,
                     sizePx = previewSizePx
                 )
             }

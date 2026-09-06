@@ -103,9 +103,6 @@ fun MusicWidget2x2StandardContent(
             // Top: Circular Album Art + Ring
             WidgetArtworkRing(
                 artwork = playbackState.albumArt,
-                progress = playbackState.progress,
-                isPlaying = playbackState.isPlaying,
-                ringStyle = config.ringStyle,
                 ringColor = accentColor,
                 sizeDp = artworkSizeDp,
                 density = density
@@ -158,7 +155,6 @@ fun MusicWidget2x2StandardContent(
             // Bottom: Controls row
             WidgetControlsRow(
                 isPlaying = playbackState.isPlaying,
-                accentColor = accentColor,
                 buttonSize = buttonSizeDp,
                 playButtonSize = playButtonSizeDp,
                 iconSize = iconSizeDp,

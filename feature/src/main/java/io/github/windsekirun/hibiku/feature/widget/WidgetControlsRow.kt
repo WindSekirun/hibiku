@@ -25,7 +25,6 @@ import io.github.windsekirun.hibiku.feature.R
 @Composable
 fun WidgetControlsRow(
     isPlaying: Boolean,
-    accentColor: Int,
     modifier: GlanceModifier = GlanceModifier,
     buttonSize: Dp = 32.dp,
     playButtonSize: Dp = 44.dp,

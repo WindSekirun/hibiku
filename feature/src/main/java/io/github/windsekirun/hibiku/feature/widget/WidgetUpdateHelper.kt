@@ -24,7 +24,7 @@ object WidgetUpdateHelper {
         helperScope.launch {
             for (context in updateRequests) {
                 // Debounce rapid bursts (e.g. metadata + playbackstate + queue changes all in <100ms)
-                delay(120L)
+                delay(120L.milliseconds)
                 // Drain any additional requests queued during debounce
                 var latestContext = context
                 while (true) {
@@ -86,9 +86,5 @@ object WidgetUpdateHelper {
             }
         }
     }
-}
-
-fun updateAllMusicWidgets(context: Context) {
-    WidgetUpdateHelper.updateAllWidgets(context)
 }
 

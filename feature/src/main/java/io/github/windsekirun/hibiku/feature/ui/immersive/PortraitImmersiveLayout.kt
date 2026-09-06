@@ -190,7 +190,6 @@ fun PortraitImmersiveLayout(
                 )
 
                 QueueIconButton(
-                    accentColor = accentColor,
                     isDarkMode = isDarkMode,
                     onClick = onOpenQueue
                 )

@@ -2,7 +2,6 @@ package io.github.windsekirun.hibiku.feature.service
 
 import android.app.Notification
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
@@ -115,8 +114,8 @@ class MediaNotificationListenerService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "[onCreate] Service created")
-        mediaSessionManager = getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+        mediaSessionManager = getSystemService(MEDIA_SESSION_SERVICE) as MediaSessionManager
+        audioManager = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
         listenerComponent = ComponentName(this, MediaNotificationListenerService::class.java)
     }
 

@@ -13,15 +13,11 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.layout.size
 import io.github.windsekirun.hibiku.core.graphics.WidgetBitmapRenderer
-import io.github.windsekirun.hibiku.domain.model.RingStyle
 import io.github.windsekirun.hibiku.feature.R
 
 @Composable
 fun WidgetArtworkRing(
     artwork: Bitmap?,
-    progress: Float,
-    isPlaying: Boolean,
-    ringStyle: RingStyle,
     ringColor: Int,
     sizeDp: Dp,
     density: Float,

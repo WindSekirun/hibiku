@@ -41,9 +41,7 @@ enum class ImmersiveShapeStyle(val label: String) {
 
 class Figure8Shape : Shape {
     override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
+        size: Size
     ): Outline {
         val w = size.width
         val h = size.height
@@ -71,7 +69,7 @@ class Figure8Shape : Shape {
     }
 }
 
-class SquircleShape(val cornerPercent: Int = 28) : Shape {
+class SquircleShape(cornerPercent: Int = 28) : Shape {
     private val delegate = RoundedCornerShape(cornerPercent)
 
     override fun createOutline(
@@ -122,9 +120,7 @@ fun calculateScallopSegments(
 
 class ScallopShape(val points: Int = 12) : Shape {
     override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
+        size: Size
     ): Outline {
         val path = Path()
         val width = size.width
@@ -133,9 +129,8 @@ class ScallopShape(val points: Int = 12) : Shape {
         val cy = height / 2f
         val maxRadius = minOf(width, height) / 2f
         val innerRadius = maxRadius * 0.85f
-        val outerRadius = maxRadius
 
-        val segments = calculateScallopSegments(points, cx, cy, innerRadius, outerRadius)
+        val segments = calculateScallopSegments(points, cx, cy, innerRadius, maxRadius)
         segments.forEachIndexed { index, segment ->
             if (index == 0) {
                 path.moveTo(segment.startX, segment.startY)
