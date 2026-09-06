@@ -99,6 +99,10 @@ class LaunchImmersiveActionCallback : ActionCallback {
         parameters: ActionParameters
     ) {
         try {
+            io.github.windsekirun.hibiku.feature.service.MediaNotificationListenerService.requestSync(
+                context,
+                forceWidgetUpdate = true
+            )
             val intent = Intent().apply {
                 component = ComponentName(
                     context.packageName,

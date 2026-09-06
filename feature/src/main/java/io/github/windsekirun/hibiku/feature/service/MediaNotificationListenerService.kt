@@ -2,6 +2,7 @@ package io.github.windsekirun.hibiku.feature.service
 
 import android.app.Notification
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
@@ -113,6 +114,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         Log.i(TAG, "[onCreate] Service created")
         mediaSessionManager = getSystemService(MEDIA_SESSION_SERVICE) as MediaSessionManager
         audioManager = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
@@ -152,6 +154,9 @@ class MediaNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onDestroy() {
+        if (instance == this) {
+            instance = null
+        }
         unregisterAudioPlaybackCallback()
         unregisterPowerReceiver()
         detachAllControllers()
@@ -278,17 +283,17 @@ class MediaNotificationListenerService : NotificationListenerService() {
         powerReceiver = null
     }
 
-    private fun queryActiveSessions() {
+    private fun queryActiveSessions(forceWidgetUpdate: Boolean = false) {
         try {
             val sessions = mediaSessionManager.getActiveSessions(listenerComponent)
             Log.i(TAG, "[queryActiveSessions] count=${sessions.size}, pkgs=${sessions.map { it.packageName }}")
-            updateActiveSession(sessions)
+            updateActiveSession(sessions, forceWidgetUpdate = forceWidgetUpdate)
         } catch (e: SecurityException) {
             Log.e(TAG, "Notification listener permission not granted or session query failed", e)
         }
     }
 
-    private fun updateActiveSession(controllers: List<MediaController>?) {
+    private fun updateActiveSession(controllers: List<MediaController>?, forceWidgetUpdate: Boolean = false) {
         val currentTokens = controllers?.map { it.sessionToken }?.toSet() ?: emptySet()
         val tokensToRemove = controllerCallbacks.keys - currentTokens
         tokensToRemove.forEach { token ->
@@ -362,7 +367,7 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
 
         if (newController != null) {
-            updatePlaybackFromController(newController)
+            updatePlaybackFromController(newController, forceWidgetUpdate = forceWidgetUpdate)
         } else {
             Log.i(TAG, "[updateActiveSession] No active controller found, resetting")
             activeController = null
@@ -481,7 +486,11 @@ class MediaNotificationListenerService : NotificationListenerService() {
         return rawPosition.coerceAtLeast(0L)
     }
 
-    private fun updatePlaybackFromController(controller: MediaController, sbn: StatusBarNotification? = null) {
+    private fun updatePlaybackFromController(
+        controller: MediaController,
+        sbn: StatusBarNotification? = null,
+        forceWidgetUpdate: Boolean = false
+    ) {
         val playbackState = controller.playbackState
         val metadata = controller.metadata
         val current = MediaPlaybackRepository.playbackState.value
@@ -591,10 +600,10 @@ class MediaNotificationListenerService : NotificationListenerService() {
                 current.albumArt != albumArt ||
                 current.packageName != controller.packageName
 
-        Log.i(TAG, "[updatePlaybackFromController] pkg=${controller.packageName}, isPlaying=$isPlaying, title='$title', artist='$artist', hasChanged=$hasChanged, hasArt=${albumArt != null}")
+        Log.i(TAG, "[updatePlaybackFromController] pkg=${controller.packageName}, isPlaying=$isPlaying, title='$title', artist='$artist', hasChanged=$hasChanged, force=$forceWidgetUpdate, hasArt=${albumArt != null}")
 
         MediaPlaybackRepository.updatePlaybackState(state)
-        if (hasChanged) {
+        if (hasChanged || forceWidgetUpdate) {
             WidgetUpdateHelper.updateAllWidgets(this)
         }
     }
@@ -660,5 +669,18 @@ class MediaNotificationListenerService : NotificationListenerService() {
 
     companion object {
         private const val TAG = "MediaNotifListener"
+        @Volatile
+        private var instance: MediaNotificationListenerService? = null
+
+        fun requestSync(context: Context, forceWidgetUpdate: Boolean = false) {
+            val service = instance
+            if (service != null) {
+                Log.i(TAG, "[requestSync] Triggering queryActiveSessions from existing service instance (force=$forceWidgetUpdate)")
+                service.queryActiveSessions(forceWidgetUpdate = forceWidgetUpdate)
+            } else {
+                Log.i(TAG, "[requestSync] Service instance is null, updating widgets directly")
+                WidgetUpdateHelper.updateAllWidgets(context)
+            }
+        }
     }
 }

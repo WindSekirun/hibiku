@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
+import io.github.windsekirun.hibiku.feature.service.MediaNotificationListenerService
 import io.github.windsekirun.hibiku.feature.widget.WidgetUpdateHelper
 
 class ImmersivePlayerActivity : ComponentActivity() {
@@ -20,6 +21,8 @@ class ImmersivePlayerActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
         enableEdgeToEdge()
+
+        MediaNotificationListenerService.requestSync(this, forceWidgetUpdate = true)
 
         setContent {
             val playbackState by MediaPlaybackRepository.playbackState.collectAsState()
@@ -38,8 +41,18 @@ class ImmersivePlayerActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        MediaNotificationListenerService.requestSync(this, forceWidgetUpdate = true)
+    }
+
     override fun onPause() {
         super.onPause()
-        WidgetUpdateHelper.updateAllWidgets(this)
+        MediaNotificationListenerService.requestSync(this, forceWidgetUpdate = true)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        MediaNotificationListenerService.requestSync(this, forceWidgetUpdate = true)
     }
 }
