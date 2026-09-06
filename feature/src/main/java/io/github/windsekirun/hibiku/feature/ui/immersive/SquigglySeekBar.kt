@@ -102,7 +102,8 @@ fun SquigglySeekBar(
     isPlaying: Boolean,
     accentColor: Color,
     modifier: Modifier = Modifier,
-    inactiveColor: Color = Color.White.copy(alpha = 0.25f),
+    isDarkMode: Boolean = true,
+    inactiveColor: Color = if (isDarkMode) Color.White.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.15f),
     thumbRadius: Dp = 7.dp,
     strokeWidth: Dp = 4.dp,
     waveAmplitude: Dp = 5.dp,
@@ -251,6 +252,8 @@ fun SquigglySeekBar(
 
         Spacer(modifier = Modifier.height(2.dp))
 
+        val timeTextColor = if (isDarkMode) Color.White.copy(alpha = 0.75f) else Color.Black.copy(alpha = 0.65f)
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -261,12 +264,12 @@ fun SquigglySeekBar(
             Text(
                 text = formatTimeMs(displayPositionMs),
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.75f)
+                color = timeTextColor
             )
             Text(
                 text = formatTimeMs(durationMs),
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.75f)
+                color = timeTextColor
             )
         }
     }

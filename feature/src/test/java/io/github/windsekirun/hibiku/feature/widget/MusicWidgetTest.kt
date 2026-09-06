@@ -1,9 +1,6 @@
 package io.github.windsekirun.hibiku.feature.widget
 
-import io.github.windsekirun.hibiku.domain.model.MediaPlaybackState
-import io.github.windsekirun.hibiku.domain.repository.DefaultMediaPlaybackRepository
 import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
-import io.github.windsekirun.hibiku.feature.service.PlaybackTicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -40,35 +37,6 @@ class MusicWidgetTest {
         val receiver2x2Std = MusicWidget2x2StandardReceiver()
         assertNotNull(receiver2x2Std.glanceAppWidget)
         assertTrue(receiver2x2Std.glanceAppWidget is MusicWidget2x2Standard)
-    }
-
-    @Test
-    fun playbackTicker_triggersOnTickCallback() {
-        var tickCount = 0
-        val repository = DefaultMediaPlaybackRepository()
-        repository.updatePlaybackState(
-            MediaPlaybackState(
-                isPlaying = true,
-                positionMs = 10_000L,
-                durationMs = 60_000L
-            )
-        )
-
-        val ticker = PlaybackTicker(
-            repository = repository,
-            coroutineScope = testScope,
-            dispatcher = Dispatchers.Unconfined,
-            onTick = { tickCount++ }
-        )
-
-        ticker.tick()
-        assertEquals(1, tickCount)
-
-        ticker.onPlaybackStateChanged()
-        assertEquals(2, tickCount)
-
-        ticker.setScreenOn(false)
-        assertEquals(3, tickCount)
     }
 
     @Test

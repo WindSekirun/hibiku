@@ -40,7 +40,6 @@ class MusicWidget2x2Pure : GlanceAppWidget() {
                 playbackState.title,
                 playbackState.artist,
                 playbackState.isPlaying,
-                playbackState.progress,
                 config
             ) {
                 MusicWidget2x2PureContent(

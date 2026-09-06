@@ -26,6 +26,7 @@ fun FluidWaveSeekBar(
     isPlaying: Boolean,
     accentColor: Color,
     modifier: Modifier = Modifier,
+    isDarkMode: Boolean = true,
     onSeek: (Long) -> Unit
 ) {
     var isDragging by remember { mutableStateOf(false) }
@@ -40,6 +41,11 @@ fun FluidWaveSeekBar(
         (dragRatio * durationMs).toLong()
     } else positionMs
 
+    val inactiveColor = if (isDarkMode) Color.White.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.15f)
+    val thumbBorder = if (isDarkMode) Color.White else Color(0xFF111111)
+    val thumbInner = if (isDarkMode) Color(0xFF1E1B2E) else Color(0xFFFFFFFF)
+    val timeTextColor = if (isDarkMode) Color.White.copy(alpha = 0.75f) else Color.Black.copy(alpha = 0.65f)
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -52,9 +58,9 @@ fun FluidWaveSeekBar(
             },
             mainColor = accentColor,
             isPlaying = isPlaying,
-            inactiveTrackColor = Color.White.copy(alpha = 0.25f),
-            thumbBorderColor = Color.White,
-            thumbInnerColor = Color(0xFF1E1B2E)
+            inactiveTrackColor = inactiveColor,
+            thumbBorderColor = thumbBorder,
+            thumbInnerColor = thumbInner
         )
 
         Row(
@@ -67,12 +73,12 @@ fun FluidWaveSeekBar(
             Text(
                 text = formatTimeMs(displayPositionMs),
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.75f)
+                color = timeTextColor
             )
             Text(
                 text = formatTimeMs(durationMs),
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.75f)
+                color = timeTextColor
             )
         }
     }

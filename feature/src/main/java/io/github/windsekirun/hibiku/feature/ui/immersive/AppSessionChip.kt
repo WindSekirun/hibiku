@@ -28,7 +28,8 @@ import androidx.compose.ui.unit.dp
 fun AppSessionChip(
     packageName: String?,
     accentColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDarkMode: Boolean = true
 ) {
     val context = LocalContext.current
     val appName = remember(packageName) {
@@ -54,10 +55,13 @@ fun AppSessionChip(
         }
     }
 
+    val chipBg = if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f)
+    val textColor = if (isDarkMode) Color.White else Color(0xFF111111)
+
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.08f))
+            .background(chipBg)
             .border(1.dp, accentColor.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
             .clickable(enabled = !packageName.isNullOrBlank(), onClick = onClickApp)
             .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -73,7 +77,7 @@ fun AppSessionChip(
         Text(
             text = appName,
             style = MaterialTheme.typography.labelMedium,
-            color = Color.White,
+            color = textColor,
             fontWeight = FontWeight.Bold
         )
     }

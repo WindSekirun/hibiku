@@ -36,12 +36,18 @@ fun PortraitImmersiveLayout(
     currentShape: ImmersiveShapeStyle,
     seeBarStyle: SeekBarStyle,
     accentColor: Color,
+    isDarkMode: Boolean = true,
     onPlayPause: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSkipNext: () -> Unit,
     onSeek: (Long) -> Unit,
     onOpenQueue: () -> Unit = {}
 ) {
+    val primaryTextColor = if (isDarkMode) Color.White else Color(0xFF111111)
+    val secondaryTextColor = if (isDarkMode) Color.White.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.65f)
+    val buttonBgColor = if (isDarkMode) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
+    val buttonContentColor = if (isDarkMode) Color.White else Color(0xFF111111)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -91,7 +97,7 @@ fun PortraitImmersiveLayout(
                     fontWeight = FontWeight.Bold,
                     fontSize = 26.sp
                 ),
-                color = Color.White,
+                color = primaryTextColor,
                 textAlign = TextAlign.Center
             )
 
@@ -100,7 +106,7 @@ fun PortraitImmersiveLayout(
             Text(
                 text = playbackState.artist.ifEmpty { "StandBy Mode" },
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White.copy(alpha = 0.7f),
+                color = secondaryTextColor,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -114,6 +120,7 @@ fun PortraitImmersiveLayout(
                     durationMs = playbackState.durationMs,
                     isPlaying = playbackState.isPlaying,
                     accentColor = accentColor,
+                    isDarkMode = isDarkMode,
                     onSeek = onSeek
                 )
             } else {
@@ -122,6 +129,7 @@ fun PortraitImmersiveLayout(
                     durationMs = playbackState.durationMs,
                     isPlaying = playbackState.isPlaying,
                     accentColor = accentColor,
+                    isDarkMode = isDarkMode,
                     onSeek = onSeek
                 )
             }
@@ -136,12 +144,12 @@ fun PortraitImmersiveLayout(
                 ScallopButton(
                     onClick = onSkipPrevious,
                     size = 54.dp,
-                    backgroundColor = Color.White.copy(alpha = 0.12f)
+                    backgroundColor = buttonBgColor
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_widget_prev),
                         contentDescription = "Previous",
-                        tint = Color.White,
+                        tint = buttonContentColor,
                         modifier = Modifier.size(26.dp)
                     )
                 }
@@ -157,12 +165,12 @@ fun PortraitImmersiveLayout(
                 ScallopButton(
                     onClick = onSkipNext,
                     size = 54.dp,
-                    backgroundColor = Color.White.copy(alpha = 0.12f)
+                    backgroundColor = buttonBgColor
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_widget_next),
                         contentDescription = "Next",
-                        tint = Color.White,
+                        tint = buttonContentColor,
                         modifier = Modifier.size(26.dp)
                     )
                 }
@@ -177,11 +185,13 @@ fun PortraitImmersiveLayout(
             ) {
                 AppSessionChip(
                     packageName = playbackState.packageName,
-                    accentColor = accentColor
+                    accentColor = accentColor,
+                    isDarkMode = isDarkMode
                 )
 
                 QueueIconButton(
                     accentColor = accentColor,
+                    isDarkMode = isDarkMode,
                     onClick = onOpenQueue
                 )
             }

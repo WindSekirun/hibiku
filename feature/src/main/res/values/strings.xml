@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_4x2_name">hibiku 4x2</string>
-    <string name="widget_4x2_description">Wide widget with circular album art, progress ring, song info, and playback controls.</string>
+    <string name="widget_4x2_description">Wide widget with circular album art, accent border, song info, and playback controls.</string>
     <string name="widget_2x2_standard_name">hibiku 2x2 Standard</string>
-    <string name="widget_2x2_standard_description">Square widget with circular album art, progress ring, title, and playback controls.</string>
+    <string name="widget_2x2_standard_description">Square widget with circular album art, accent border, title, and playback controls.</string>
     <string name="widget_2x2_minimal_name">hibiku 2x2 Minimal</string>
-    <string name="widget_2x2_minimal_description">Minimal square widget featuring prominent circular artwork, progress ring, and controls.</string>
+    <string name="widget_2x2_minimal_description">Minimal square widget featuring circular artwork, accent border, and controls.</string>
     <string name="widget_2x2_pure_name">hibiku 2x2 Pure</string>
-    <string name="widget_2x2_pure_description">Ultra-minimal transparent widget with circular album art and progress ring only.</string>
+    <string name="widget_2x2_pure_description">Ultra-minimal transparent widget with circular album art and accent border only.</string>
     <string name="no_music_playing">No music playing</string>
     <string name="unknown_artist">Unknown artist</string>
     <string name="cd_play">Play</string>
@@ -33,6 +33,8 @@
     <string name="config_options_section">Display Options</string>
     <string name="config_text_visible">Show Track Info Text</string>
     <string name="config_text_visible_desc">Displays song title and artist name on the widget.</string>
+    <string name="config_blur_background_title">Blurred Artwork Background</string>
+    <string name="config_blur_background_desc">Displays a blurred artwork background on the widget card.</string>
     <string name="config_permission_banner_title">Notification Access Required</string>
     <string name="config_permission_banner_desc">Notification access is required to display active media info on the widget.</string>
     <string name="config_permission_button">Open Settings</string>

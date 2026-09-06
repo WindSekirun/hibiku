@@ -30,14 +30,10 @@ fun WidgetArtworkRing(
 ) {
     // Optimize ring bitmap dimensions (max 180px) for Binder IPC memory safety
     val sizePx = minOf((sizeDp.value * density).toInt(), 180).coerceAtLeast(32)
-    val artBitmap = remember(artwork, progress, isPlaying, ringStyle, ringColor, sizePx) {
-        WidgetBitmapRenderer.renderArtworkWithRing(
+    val artBitmap = remember(artwork, ringColor, sizePx) {
+        WidgetBitmapRenderer.renderArtworkWithBorder(
             artwork = artwork,
-            progress = progress,
-            isPlaying = isPlaying,
-            ringStyle = ringStyle,
-            ringColor = ringColor,
-            trackColor = 0x33FFFFFF,
+            borderColor = ringColor,
             sizePx = sizePx
         )
     }

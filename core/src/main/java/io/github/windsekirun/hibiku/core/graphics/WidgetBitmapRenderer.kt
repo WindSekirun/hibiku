@@ -13,13 +13,9 @@ import io.github.windsekirun.hibiku.domain.model.RingStyle
 
 object WidgetBitmapRenderer {
 
-    fun renderArtworkWithRing(
+    fun renderArtworkWithBorder(
         artwork: Bitmap?,
-        progress: Float,
-        isPlaying: Boolean,
-        ringStyle: RingStyle,
-        ringColor: Int,
-        trackColor: Int = 0x33FFFFFF,
+        borderColor: Int,
         sizePx: Int = 200
     ): Bitmap {
         val size = maxOf(1, sizePx)
@@ -29,20 +25,13 @@ object WidgetBitmapRenderer {
         val cx = size / 2f
         val cy = size / 2f
 
-        val ringStrokeWidth = maxOf(2f, size * 0.05f)
-        val thumbRadius = ringStrokeWidth * 1.1f
-        val ringPadding = ringStrokeWidth + thumbRadius
-        val ringRadius = maxOf(4f, (size / 2f) - ringPadding)
-        val ringBounds = RectF(cx - ringRadius, cy - ringRadius, cx + ringRadius, cy + ringRadius)
+        // Border width scaled nicely (around 3-4% of widget size)
+        val borderWidth = maxOf(2f, size * 0.045f)
+        val borderPadding = borderWidth / 2f + 1f
+        val borderRadius = maxOf(2f, (size / 2f) - borderPadding)
+        val artworkRadius = maxOf(1f, borderRadius - (borderWidth / 2f))
 
-        val artworkGap = if (ringStyle == RingStyle.FLOATING_CLEAN) {
-            ringStrokeWidth * 0.8f
-        } else {
-            ringStrokeWidth * 0.4f
-        }
-        val artworkRadius = maxOf(2f, ringRadius - (ringStrokeWidth / 2f) - artworkGap)
-
-        // 1. Draw artwork or placeholder
+        // 1. Draw circular artwork or placeholder
         if (artwork != null && !artwork.isRecycled) {
             val saveCount = canvas.saveLayer(0f, 0f, size.toFloat(), size.toFloat(), null)
 
@@ -82,153 +71,31 @@ object WidgetBitmapRenderer {
             drawMusicalNote(canvas, cx, cy, artworkRadius * 0.5f)
         }
 
-        // 2. Draw ring style
-        val sweepAngle = RingMathHelper.calculateSweepAngle(progress)
-        val startAngle = -90f
-
-        val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = trackColor
+        // 2. Draw circular accent border
+        val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = borderColor
             style = Paint.Style.STROKE
-            strokeWidth = ringStrokeWidth
-            strokeCap = Paint.Cap.ROUND
+            strokeWidth = borderWidth
         }
-
-        val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = ringColor
-            style = Paint.Style.STROKE
-            strokeWidth = ringStrokeWidth
-            strokeCap = Paint.Cap.ROUND
-        }
-
-        when (ringStyle) {
-            RingStyle.SOLID_CLASSIC -> {
-                canvas.drawCircle(cx, cy, ringRadius, trackPaint)
-                if (sweepAngle > 0f) {
-                    canvas.drawArc(ringBounds, startAngle, sweepAngle, false, ringPaint)
-                }
-            }
-
-            RingStyle.FLOATING_CLEAN -> {
-                canvas.drawCircle(cx, cy, ringRadius, trackPaint)
-
-                // Thin inner circle line around artwork with small gap
-                val innerLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = trackColor
-                    style = Paint.Style.STROKE
-                    strokeWidth = maxOf(1f, ringStrokeWidth * 0.25f)
-                }
-                canvas.drawCircle(cx, cy, artworkRadius + (artworkGap / 2f), innerLinePaint)
-
-                if (sweepAngle > 0f) {
-                    canvas.drawArc(ringBounds, startAngle, sweepAngle, false, ringPaint)
-                }
-            }
-
-            RingStyle.SEGMENTED_MINIMAL -> {
-                val totalSegments = 36
-                val ticks = RingMathHelper.calculateSegmentTicks(progress, totalSegments)
-                val tickLength = ringStrokeWidth * 1.3f
-                val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    style = Paint.Style.STROKE
-                    strokeWidth = maxOf(2f, ringStrokeWidth * 0.35f)
-                    strokeCap = Paint.Cap.ROUND
-                }
-
-                for (i in 0 until totalSegments) {
-                    val angleDeg = startAngle + i * (360f / totalSegments)
-                    val (x1, y1) = RingMathHelper.calculateThumbPosition(
-                        cx, cy, ringRadius - tickLength / 2f, angleDeg
-                    )
-                    val (x2, y2) = RingMathHelper.calculateThumbPosition(
-                        cx, cy, ringRadius + tickLength / 2f, angleDeg
-                    )
-                    tickPaint.color = if (ticks[i]) ringColor else trackColor
-                    canvas.drawLine(x1, y1, x2, y2, tickPaint)
-                }
-            }
-
-            RingStyle.GLOW_THUMB -> {
-                canvas.drawCircle(cx, cy, ringRadius, trackPaint)
-                if (sweepAngle > 0f) {
-                    canvas.drawArc(ringBounds, startAngle, sweepAngle, false, ringPaint)
-                }
-
-                if (progress > 0f) {
-                    val thumbAngle = RingMathHelper.calculateThumbAngle(progress, startAngle)
-                    val (tx, ty) = RingMathHelper.calculateThumbPosition(cx, cy, ringRadius, thumbAngle)
-
-                    val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = ringColor
-                        alpha = 0x55
-                        style = Paint.Style.FILL
-                    }
-                    canvas.drawCircle(tx, ty, thumbRadius * 1.6f, glowPaint)
-
-                    val solidPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = ringColor
-                        style = Paint.Style.FILL
-                    }
-                    canvas.drawCircle(tx, ty, thumbRadius, solidPaint)
-
-                    val centerDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = Color.WHITE
-                        style = Paint.Style.FILL
-                    }
-                    canvas.drawCircle(tx, ty, thumbRadius * 0.4f, centerDotPaint)
-                }
-            }
-
-            RingStyle.SQUIGGLY_WAVE -> {
-                if (sweepAngle <= 0f) {
-                    // 진행 없음 → 전체 회색 트랙만
-                    canvas.drawCircle(cx, cy, ringRadius, trackPaint)
-                } else if (!isPlaying) {
-                    // 일시정지 → 회색 트랙 전체 + 일반 arc
-                    canvas.drawCircle(cx, cy, ringRadius, trackPaint)
-                    canvas.drawArc(ringBounds, startAngle, sweepAngle, false, ringPaint)
-                } else {
-                    // 재생 중 → 웨이브 구간에는 회색 트랙 제외
-                    // 남은 구간(sweepAngle 끝 ~ 360°)만 회색 트랙으로 그림
-                    val remainAngle = 360f - sweepAngle
-                    if (remainAngle > 0f) {
-                        canvas.drawArc(
-                            ringBounds,
-                            startAngle + sweepAngle,  // 웨이브 끝 지점부터
-                            remainAngle,
-                            false,
-                            trackPaint
-                        )
-                    }
-
-                    // 웨이브 경로 그리기
-                    val wavePath = Path()
-                    val steps = maxOf(4, (sweepAngle * 2).toInt())
-                    val angleStep = sweepAngle / steps
-                    val amplitude = ringStrokeWidth * 0.35f
-                    val waveCount = 12
-
-                    for (i in 0..steps) {
-                        val angleDeg = startAngle + i * angleStep
-                        val angleRad = Math.toRadians(angleDeg.toDouble())
-                        val radialOffset = RingMathHelper.calculateSquigglyRadialOffset(
-                            angleRad = angleRad,
-                            waveCount = waveCount,
-                            amplitude = amplitude
-                        )
-                        val r = ringRadius + radialOffset
-                        val (x, y) = RingMathHelper.calculateThumbPosition(cx, cy, r, angleDeg)
-                        if (i == 0) {
-                            wavePath.moveTo(x, y)
-                        } else {
-                            wavePath.lineTo(x, y)
-                        }
-                    }
-                    canvas.drawPath(wavePath, ringPaint)
-                }
-            }
-        }
+        canvas.drawCircle(cx, cy, borderRadius, borderPaint)
 
         return output
+    }
+
+    fun renderArtworkWithRing(
+        artwork: Bitmap?,
+        progress: Float,
+        isPlaying: Boolean,
+        ringStyle: RingStyle,
+        ringColor: Int,
+        trackColor: Int = 0x33FFFFFF,
+        sizePx: Int = 200
+    ): Bitmap {
+        return renderArtworkWithBorder(
+            artwork = artwork,
+            borderColor = ringColor,
+            sizePx = sizePx
+        )
     }
 
     fun renderBlurredBackground(

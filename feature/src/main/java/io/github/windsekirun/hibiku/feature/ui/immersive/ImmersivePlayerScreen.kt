@@ -43,13 +43,16 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -115,6 +118,18 @@ fun ImmersivePlayerScreen(
         ImmersiveThemeMode.DARK -> true
         ImmersiveThemeMode.LIGHT -> false
         ImmersiveThemeMode.SYSTEM -> isSystemDark
+    }
+
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) {
+        androidx.compose.runtime.SideEffect {
+            val window = (view.context as? android.app.Activity)?.window
+            if (window != null) {
+                val insetsController = androidx.core.view.WindowCompat.getInsetsController(window, view)
+                insetsController.isAppearanceLightStatusBars = !isDarkMode
+                insetsController.isAppearanceLightNavigationBars = !isDarkMode
+            }
+        }
     }
 
     val backgroundColor = if (isDarkMode) Color(0xFF0B0C0E) else Color(0xFFF5F6F8)
@@ -231,6 +246,7 @@ fun ImmersivePlayerScreen(
                                     style = style,
                                     isSelected = style == currentShape,
                                     accentColor = accentColor,
+                                    isDarkMode = isDarkMode,
                                     bitmap = playbackState.albumArt,
                                     onClick = {
                                         currentShape = style
@@ -384,6 +400,7 @@ fun ImmersivePlayerScreen(
             QueueBottomSheet(
                 playbackState = playbackState,
                 accentColor = accentColor,
+                isDarkMode = isDarkMode,
                 onDismiss = { isQueueBottomSheetOpen = false }
             )
         }
@@ -399,6 +416,7 @@ fun ImmersivePlayerScreen(
                     currentShape = currentShape,
                     seeBarStyle = currentSeekBarStyle,
                     accentColor = accentColor,
+                    isDarkMode = isDarkMode,
                     onPlayPause = onPlayPause,
                     onSkipPrevious = onSkipPrevious,
                     onSkipNext = onSkipNext,
@@ -411,6 +429,7 @@ fun ImmersivePlayerScreen(
                     currentShape = currentShape,
                     seeBarStyle = currentSeekBarStyle,
                     accentColor = accentColor,
+                    isDarkMode = isDarkMode,
                     onPlayPause = onPlayPause,
                     onSkipPrevious = onSkipPrevious,
                     onSkipNext = onSkipNext,

@@ -37,11 +37,15 @@ fun ShapePreviewCard(
     accentColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isDarkMode: Boolean = true,
     bitmap: Bitmap? = null
 ) {
     val targetShape = getShapeForStyle(style)
-    val cardBg = if (isSelected) accentColor.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.08f)
-    val borderColor = if (isSelected) accentColor else Color.White.copy(alpha = 0.15f)
+    val defaultCardBg = if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f)
+    val defaultBorder = if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f)
+    val cardBg = if (isSelected) accentColor.copy(alpha = 0.20f) else defaultCardBg
+    val borderColor = if (isSelected) accentColor else defaultBorder
+    val textColor = if (isSelected) accentColor else (if (isDarkMode) Color.White else Color(0xFF111111))
 
     Surface(
         modifier = modifier
@@ -100,7 +104,7 @@ fun ShapePreviewCard(
                 text = style.label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) accentColor else Color.White
+                color = textColor
             )
         }
     }

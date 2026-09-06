@@ -808,24 +808,22 @@
   <div class="section-header">
     <h2 class="section-title">1. 홈 위젯 디자인 시스템</h2>
     <p class="section-desc">
-      원형 앨범아트와 5가지 시그니처 프로그레스 링, 블러 배경이 결합된 Android 16-17 홈 위젯 4종(4x2, 2x2 Standard, 2x2 Minimal, 2x2 Pure)입니다.
+      원형 앨범아트와 엑센트 테두리, 블러 배경이 결합된 Android 16-17 홈 위젯 3종(4x2, 2x2 Standard, 2x2 Pure)입니다.
     </p>
   </div>
 
   <div class="toolbar">
     <div class="tool-row" style="background: rgba(255,255,255,0.03); padding: 8px 14px; border-radius: 12px;">
-      <span style="font-size: 0.85rem; color: #a5b4fc;">💡 위젯 앨범아트는 둘레 프로그레스 링과의 일체감을 위해 단정한 <b>원형(Circle)</b>으로 고정되며, 셰이프 커스텀은 아래 이머시브 모드에서 제공됩니다.</span>
+      <span style="font-size: 0.85rem; color: #a5b4fc;">💡 위젯 앨범아트는 단정한 <b>원형(Circle)</b>과 <b>엑센트 테두리</b>로 고정되며, 셰이프 커스텀은 아래 이머시브 모드에서 제공됩니다.</span>
     </div>
 
-    <!-- Progress Ring Style -->
+    <!-- Accent Border Style -->
     <div class="tool-row">
-      <div class="tool-label">프로그레스 링 스타일:</div>
+      <div class="tool-label">앨범아트 테두리 스타일:</div>
       <div class="chip-group">
-        <button class="chip active" onclick="setRingStyle('floating', this)">플로팅 듀얼 링 (Floating Clean)</button>
-        <button class="chip" onclick="setRingStyle('squiggly', this)">물결 웨이브 (Squiggly Wave)</button>
-        <button class="chip" onclick="setRingStyle('segmented', this)">세그먼트 도트 (Segmented Minimal)</button>
-        <button class="chip" onclick="setRingStyle('glow', this)">글로우 썸 (Glow Thumb)</button>
-        <button class="chip" onclick="setRingStyle('solid', this)">솔리드 클래식 (Solid Classic)</button>
+        <button class="chip active" onclick="setRingStyle('solid', this)">솔리드 엑센트 (Solid Accent)</button>
+        <button class="chip" onclick="setRingStyle('floating', this)">듀얼 서클 (Dual Accent)</button>
+        <button class="chip" onclick="setRingStyle('slim', this)">슬림 미니멀 (Slim Minimal)</button>
       </div>
     </div>
 
@@ -1127,60 +1125,18 @@
     if (!svg) return;
     const cx = size / 2;
     const cy = size / 2;
-    const circ = 2 * Math.PI * trackRadius;
     let html = '';
 
+    const width = (currentRing === 'slim') ? (strokeWidth * 0.6) : strokeWidth;
+    const r = radius + 2;
+
     if (currentRing === 'floating') {
-      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (radius + 1) + '" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.6"/>';
-    }
-
-    const trackColor = 'rgba(255, 255, 255, 0.2)';
-    if (currentRing === 'segmented') {
-      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + trackRadius + '" fill="none" stroke="' + trackColor + '" stroke-width="' + strokeWidth + '" stroke-dasharray="2 5" stroke-linecap="round"/>';
+      // Dual circle accent
+      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r - 2) + '" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>';
+      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r + 2) + '" fill="none" stroke="' + widgetColor + '" stroke-width="' + width + '"/>';
     } else {
-      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + trackRadius + '" fill="none" stroke="' + trackColor + '" stroke-width="' + strokeWidth + '" stroke-linecap="round"/>';
-    }
-
-    if (currentRing === 'squiggly') {
-      const amplitude = 2.5;
-      const freq = 18;
-      const startAngle = -Math.PI / 2;
-      const sweepAngle = Math.PI * 2 * progressPercent;
-      const steps = 60;
-      let d = '';
-      let lx = 0, ly = 0;
-      for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const ang = startAngle + t * sweepAngle;
-        const wave = isWidgetPlaying ? Math.sin(t * sweepAngle * freq) * amplitude : 0;
-        const r = trackRadius + wave;
-        const x = cx + r * Math.cos(ang);
-        const y = cy + r * Math.sin(ang);
-        if (i === 0) d += 'M ' + x.toFixed(2) + ' ' + y.toFixed(2);
-        else d += ' L ' + x.toFixed(2) + ' ' + y.toFixed(2);
-        lx = x; ly = y;
-      }
-      html += '<path d="' + d + '" fill="none" stroke="' + widgetColor + '" stroke-width="' + strokeWidth + '" stroke-linecap="round"/>';
-      html += '<circle cx="' + lx.toFixed(2) + '" cy="' + ly.toFixed(2) + '" r="3.2" fill="#ffffff"/>';
-
-    } else if (currentRing === 'segmented') {
-      const clipId = 'segClip_' + size;
-      html += '<defs><clipPath id="' + clipId + '"><path d="M ' + cx + ' ' + cy + ' L ' + cx + ' 0 A ' + (trackRadius + 10) + ' ' + (trackRadius + 10) + ' 0 0 1 ' + (cx + (trackRadius + 10)) + ' ' + cy + ' Z" /></clipPath></defs>';
-      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + trackRadius + '" fill="none" stroke="' + widgetColor + '" stroke-width="' + strokeWidth + '" stroke-dasharray="2 5" stroke-linecap="round" clip-path="url(#' + clipId + ')"/>';
-
-    } else if (currentRing === 'glow') {
-      const dashoffset = circ * (1 - progressPercent);
-      html += '<defs><filter id="glow_' + size + '" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.5" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter></defs>';
-      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + trackRadius + '" fill="none" stroke="' + widgetColor + '" stroke-width="' + strokeWidth + '" stroke-dasharray="' + circ + '" stroke-dashoffset="' + dashoffset + '" stroke-linecap="round" transform="rotate(-90 ' + cx + ' ' + cy + ')"/>';
-      const headX = cx + trackRadius * Math.sin(progressPercent * 2 * Math.PI);
-      const headY = cy - trackRadius * Math.cos(progressPercent * 2 * Math.PI);
-      html += '<circle cx="' + headX + '" cy="' + headY + '" r="' + (strokeWidth + 1) + '" fill="#ffffff" filter="url(#glow_' + size + ')"/>';
-
-    } else {
-      const effRadius = (currentRing === 'solid') ? (radius + 2) : trackRadius;
-      const effCirc = 2 * Math.PI * effRadius;
-      const dashoffset = effCirc * (1 - progressPercent);
-      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + effRadius + '" fill="none" stroke="' + widgetColor + '" stroke-width="' + strokeWidth + '" stroke-dasharray="' + effCirc + '" stroke-dashoffset="' + dashoffset + '" stroke-linecap="round" transform="rotate(-90 ' + cx + ' ' + cy + ')"/>';
+      // Solid accent circle border
+      html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + widgetColor + '" stroke-width="' + width + '"/>';
     }
     svg.innerHTML = html;
   }

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_4x2_name">hibiku 4x2</string>
-    <string name="widget_4x2_description">원형 앨범아트, 프로그레스 링, 곡 정보, 컨트롤이 완비된 와이드 위젯입니다.</string>
+    <string name="widget_4x2_description">원형 앨범아트와 엑센트 테두리, 곡 정보, 컨트롤이 완비된 와이드 위젯입니다.</string>
     <string name="widget_2x2_standard_name">hibiku 2x2 스탠다드</string>
-    <string name="widget_2x2_standard_description">원형 앨범아트, 프로그레스 링, 곡 제목, 컨트롤이 포함된 정사각형 위젯입니다.</string>
+    <string name="widget_2x2_standard_description">원형 앨범아트와 엑센트 테두리, 곡 제목, 컨트롤이 포함된 정사각형 위젯입니다.</string>
     <string name="widget_2x2_minimal_name">hibiku 2x2 미니멀</string>
-    <string name="widget_2x2_minimal_description">대형 원형 앨범아트와 프로그레스 링 중심의 미니멀 위젯입니다.</string>
+    <string name="widget_2x2_minimal_description">원형 앨범아트와 엑센트 테두리 중심의 미니멀 위젯입니다.</string>
     <string name="widget_2x2_pure_name">hibiku 2x2 퓨어</string>
-    <string name="widget_2x2_pure_description">배경 카드 없이 앨범아트와 프로그레스 링만 띄우는 투명 위젯입니다.</string>
+    <string name="widget_2x2_pure_description">배경 카드 없이 앨범아트와 엑센트 테두리만 띄우는 투명 위젯입니다.</string>
     <string name="no_music_playing">재생 중인 음악 없음</string>
     <string name="unknown_artist">알 수 없는 아티스트</string>
     <string name="cd_play">재생</string>
@@ -33,6 +33,8 @@
     <string name="config_options_section">표시 옵션</string>
     <string name="config_text_visible">곡 정보 텍스트 표시</string>
     <string name="config_text_visible_desc">위젯에 곡 제목과 아티스트 이름을 표시합니다.</string>
+    <string name="config_blur_background_title">배경 앨범아트 블러 적용</string>
+    <string name="config_blur_background_desc">위젯 카드 배경에 현재 앨범아트 블러 효과를 표출합니다.</string>
     <string name="config_permission_banner_title">알림 접근 권한 필요</string>
     <string name="config_permission_banner_desc">재생 중인 미디어 정보를 위젯에 표시하려면 알림 접근 권한이 필요합니다.</string>
     <string name="config_permission_button">권한 설정하기</string>

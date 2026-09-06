@@ -20,20 +20,25 @@ import io.github.windsekirun.hibiku.feature.R
 fun QueueIconButton(
     accentColor: Color,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDarkMode: Boolean = true
 ) {
+    val buttonBg = if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f)
+    val buttonBorder = if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f)
+    val iconTint = if (isDarkMode) Color.White.copy(alpha = 0.9f) else Color.Black.copy(alpha = 0.85f)
+
     IconButton(
         onClick = onClick,
         modifier = modifier
             .size(42.dp)
             .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.08f))
-            .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
+            .background(buttonBg)
+            .border(1.dp, buttonBorder, CircleShape)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_queue_list),
             contentDescription = "Playback Queue",
-            tint = Color.White.copy(alpha = 0.9f),
+            tint = iconTint,
             modifier = Modifier.size(20.dp)
         )
     }

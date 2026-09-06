@@ -202,24 +202,6 @@ fun WidgetConfigurationScreen(
                 )
             }
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.config_ring_style_section),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                RingStylePickerRow(
-                    selectedStyle = widgetConfig.ringStyle,
-                    onStyleSelected = { style ->
-                        widgetConfig = widgetConfig.copy(ringStyle = style)
-                    }
-                )
-            }
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -316,14 +298,14 @@ fun WidgetConfigurationScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                                 Text(
-                                    text = "배경 앨범아트 블러 적용",
+                                    text = stringResource(R.string.config_blur_background_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "위젯 카드 배경에 현재 앨범아트 블러 효과를 표출합니다.",
+                                    text = stringResource(R.string.config_blur_background_desc),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

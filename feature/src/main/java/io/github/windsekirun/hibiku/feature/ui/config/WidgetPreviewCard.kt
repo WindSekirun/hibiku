@@ -86,22 +86,15 @@ fun WidgetPreviewCard(
     val artworkSizeDp = 106.dp
     val ringSizePx = (artworkSizeDp.value * density).toInt().coerceAtLeast(64)
 
-    // Render artwork ring bitmap
+    // Render artwork border bitmap
     val ringBitmap = remember(
         effectiveArtwork,
-        effectiveProgress,
-        effectiveIsPlaying,
-        widgetConfig.ringStyle,
         accentColorInt,
         ringSizePx
     ) {
-        WidgetBitmapRenderer.renderArtworkWithRing(
+        WidgetBitmapRenderer.renderArtworkWithBorder(
             artwork = effectiveArtwork,
-            progress = effectiveProgress,
-            isPlaying = effectiveIsPlaying,
-            ringStyle = widgetConfig.ringStyle,
-            ringColor = accentColorInt,
-            trackColor = 0x33FFFFFF,
+            borderColor = accentColorInt,
             sizePx = ringSizePx
         )
     }

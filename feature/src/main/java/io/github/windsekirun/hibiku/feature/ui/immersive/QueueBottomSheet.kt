@@ -47,8 +47,11 @@ import io.github.windsekirun.hibiku.domain.repository.MediaPlaybackRepository
 fun QueueBottomSheet(
     playbackState: MediaPlaybackState,
     accentColor: Color,
+    isDarkMode: Boolean = true,
     onDismiss: () -> Unit
 ) {
+    val primaryTextColor = if (isDarkMode) Color.White else Color(0xFF111111)
+    val secondaryTextColor = if (isDarkMode) Color.White.copy(alpha = 0.65f) else Color.Black.copy(alpha = 0.6f)
     val items = playbackState.queueItems
     val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
     val targetSheetHeight = (screenHeightDp * 0.60f).coerceAtLeast(320.dp)
@@ -77,7 +80,7 @@ fun QueueBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF16181D),
+        containerColor = if (isDarkMode) Color(0xFF16181D) else Color(0xFFFFFFFF),
         scrimColor = Color.Black.copy(alpha = 0.6f)
     ) {
         Column(
@@ -96,7 +99,7 @@ fun QueueBottomSheet(
                     text = "재생 큐 목록",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = primaryTextColor
                 )
 
                 Text(
@@ -119,8 +122,10 @@ fun QueueBottomSheet(
                     itemsIndexed(items) { index, queueItem ->
                         val isCurrent = (index == playbackState.queueIndex - 1) ||
                                 (queueItem.title == playbackState.title)
-                        val cardBorder = if (isCurrent) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
-                        val cardBg = if (isCurrent) accentColor.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f)
+                        val defaultBorder = if (isDarkMode) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.08f)
+                        val cardBorder = if (isCurrent) BorderStroke(1.5.dp, accentColor) else BorderStroke(1.dp, defaultBorder)
+                        val defaultCardBg = if (isDarkMode) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.04f)
+                        val cardBg = if (isCurrent) accentColor.copy(alpha = 0.15f) else defaultCardBg
 
                         Surface(
                             shape = RoundedCornerShape(14.dp),
@@ -142,7 +147,7 @@ fun QueueBottomSheet(
                                     text = "${index + 1}",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isCurrent) accentColor else Color.White.copy(alpha = 0.5f),
+                                    color = if (isCurrent) accentColor else primaryTextColor.copy(alpha = 0.5f),
                                     modifier = Modifier.width(28.dp),
                                     textAlign = TextAlign.Center
                                 )
@@ -152,7 +157,7 @@ fun QueueBottomSheet(
                                         text = queueItem.title,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                                        color = Color.White,
+                                        color = primaryTextColor,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -160,7 +165,7 @@ fun QueueBottomSheet(
                                         Text(
                                             text = queueItem.artist,
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White.copy(alpha = 0.65f),
+                                            color = secondaryTextColor,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
@@ -180,9 +185,11 @@ fun QueueBottomSheet(
                     }
                 }
             } else {
+                val defaultBorder = if (isDarkMode) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f)
+                val defaultCardBg = if (isDarkMode) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f)
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.08f),
+                    color = defaultCardBg,
                     border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -203,12 +210,12 @@ fun QueueBottomSheet(
                                 text = playbackState.title.ifEmpty { "No Media Playing" },
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = primaryTextColor
                             )
                             Text(
                                 text = playbackState.artist.ifEmpty { "StandBy Mode" },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.7f)
+                                color = secondaryTextColor
                             )
                         }
 

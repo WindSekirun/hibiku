@@ -62,6 +62,7 @@
         <activity
             android:name=".ui.immersive.ImmersivePlayerActivity"
             android:exported="true"
+            android:theme="@style/Theme.Hibiku.Immersive"
             android:screenOrientation="fullSensor"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize">
             <intent-filter>
