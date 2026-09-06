@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
@@ -60,7 +61,9 @@ fun QueueBottomSheet(
     val noOverscrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPostScroll(
-                available: Offset
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
             ): Offset {
                 val isAtTop = lazyListState.firstVisibleItemIndex == 0 &&
                         lazyListState.firstVisibleItemScrollOffset == 0

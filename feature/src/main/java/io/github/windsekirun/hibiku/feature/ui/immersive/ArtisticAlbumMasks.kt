@@ -33,15 +33,12 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 enum class ImmersiveShapeStyle(val label: String) {
-    FIGURE_8("Figure 8"),
-    SQUIRCLE("Squircle"),
-    VINYL("Vinyl LP"),
-    SCALLOP("Scallop")
+    FIGURE_8("Figure 8"), SQUIRCLE("Squircle"), VINYL("Vinyl LP"), SCALLOP("Scallop")
 }
 
 class Figure8Shape : Shape {
     override fun createOutline(
-        size: Size
+        size: Size, layoutDirection: LayoutDirection, density: Density
     ): Outline {
         val w = size.width
         val h = size.height
@@ -73,9 +70,7 @@ class SquircleShape(cornerPercent: Int = 28) : Shape {
     private val delegate = RoundedCornerShape(cornerPercent)
 
     override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
+        size: Size, layoutDirection: LayoutDirection, density: Density
     ): Outline = delegate.createOutline(size, layoutDirection, density)
 }
 
@@ -89,11 +84,7 @@ data class ScallopSegment(
 )
 
 fun calculateScallopSegments(
-    points: Int,
-    cx: Float,
-    cy: Float,
-    innerRadius: Float,
-    outerRadius: Float
+    points: Int, cx: Float, cy: Float, innerRadius: Float, outerRadius: Float
 ): List<ScallopSegment> {
     if (points <= 0) return emptyList()
     val segments = mutableListOf<ScallopSegment>()
@@ -120,7 +111,7 @@ fun calculateScallopSegments(
 
 class ScallopShape(val points: Int = 12) : Shape {
     override fun createOutline(
-        size: Size
+        size: Size, layoutDirection: LayoutDirection, density: Density
     ): Outline {
         val path = Path()
         val width = size.width
@@ -162,8 +153,7 @@ fun ArtisticAlbumArt(
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .clip(targetShape),
-        contentAlignment = Alignment.Center
+            .clip(targetShape), contentAlignment = Alignment.Center
     ) {
         if (bitmap != null && !bitmap.isRecycled) {
             Image(
@@ -185,13 +175,10 @@ fun ArtisticAlbumArt(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                glowColor.copy(alpha = 0.45f),
-                                Color(0xFF1E2129),
-                                Color(0xFF111317)
+                                glowColor.copy(alpha = 0.45f), Color(0xFF1E2129), Color(0xFF111317)
                             )
                         )
-                    ),
-                contentAlignment = Alignment.Center
+                    ), contentAlignment = Alignment.Center
             ) {
                 if (shape == ImmersiveShapeStyle.VINYL) {
                     VinylOverlay()

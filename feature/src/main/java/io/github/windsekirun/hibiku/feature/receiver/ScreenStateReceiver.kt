@@ -15,6 +15,5 @@ class ScreenStateReceiver(
         }
     }
 
-    companion object {
-    }
+    companion object
 }
